@@ -5,7 +5,8 @@ BASE = ""
 
 # ── patients ──────────────────────────────────────────────────────────────────
 patients = pd.read_csv(BASE + "patients.csv", usecols=["Id", "BIRTHDATE", "GENDER", "FIRST", "LAST"])
-patients.rename(columns={"Id": "patient_id", "GENDER": "gender"}, inplace=True)
+patients.rename(columns={"Id": "patient_id", "GENDER": "gender (Sex 0=M, 1=F)"}, inplace=True)
+patients["gender (Sex 0=M, 1=F)"] = patients["gender (Sex 0=M, 1=F)"].map({"M": 0, "F": 1})
 patients["name"] = patients["FIRST"] + " " + patients["LAST"]
 patients["age"] = ((pd.Timestamp.now() - pd.to_datetime(patients["BIRTHDATE"])).dt.days / 365.25).astype(int)
 patients.drop(columns=["BIRTHDATE", "FIRST", "LAST"], inplace=True)
@@ -80,6 +81,17 @@ metric_df["is_smoker"] = metric_df["is_smoker"].apply(
     lambda v: 1 if isinstance(v, str) and "daily" in v.lower() else 0
 )
 
+# embed unit in column title and drop _unit columns
+for col in list(METRIC_MAP.keys()):
+    unit_col = col + "_unit"
+    if unit_col not in metric_df.columns:
+        continue
+    non_null = metric_df[unit_col].dropna()
+    if not non_null.empty and col != "is_smoker":
+        unit = non_null.iloc[0]
+        metric_df.rename(columns={col: f"{col} ({unit})"}, inplace=True)
+    metric_df.drop(columns=[unit_col], inplace=True)
+
 # ── encounters: total cost + avg annual cost ──────────────────────────────────
 enc = pd.read_csv(
     BASE + "encounters.csv",
@@ -88,22 +100,19 @@ enc = pd.read_csv(
 )
 enc["START"] = pd.to_datetime(enc["START"], utc=True)
 enc["TOTAL_CLAIM_COST"] = pd.to_numeric(enc["TOTAL_CLAIM_COST"], errors="coerce")
+enc["year"] = enc["START"].dt.year
 
-enc_agg = enc.groupby("PATIENT").agg(
+# for each patient+year: sum encounters then divide by 12 months
+# target_avg_annual_cost = average of those monthly rates across all years
+annual = enc.groupby(["PATIENT", "year"])["TOTAL_CLAIM_COST"].sum().reset_index()
+annual["cost_per_month"] = annual["TOTAL_CLAIM_COST"] / 12
+
+enc_agg = annual.groupby("PATIENT").agg(
     total_claim_cost=("TOTAL_CLAIM_COST", "sum"),
-    _first_enc=("START", "min"),
-    _last_enc=("START", "max"),
+    target_avg_annual_cost=("cost_per_month", "mean"),
 ).reset_index().rename(columns={"PATIENT": "patient_id"})
 
-enc_agg["_years_span"] = (
-    (enc_agg["_last_enc"] - enc_agg["_first_enc"]).dt.days / 365.25
-).clip(lower=1)
-
-enc_agg["target_avg_annual_cost"] = (
-    enc_agg["total_claim_cost"] / enc_agg["_years_span"]
-).round(2)
-
-enc_agg.drop(columns=["_first_enc", "_last_enc", "_years_span"], inplace=True)
+enc_agg["target_avg_annual_cost"] = enc_agg["target_avg_annual_cost"].round(2)
 
 # ── merge all ─────────────────────────────────────────────────────────────────
 df = patients.merge(disease_count, on="patient_id", how="left")
@@ -112,12 +121,13 @@ df = df.merge(enc_agg, on="patient_id", how="left")
 
 df["num_diseases"] = df["num_diseases"].fillna(0).astype(int)
 
-# put name and age first, drop internal patient_id
-front = ["name", "age", "gender"]
-df = df[[*front, *[c for c in df.columns if c not in front + ["patient_id"]]]]
+# put age first, drop name (identifier) and total_claim_cost (leakage)
+front = ["age", "gender (Sex 0=M, 1=F)"]
+exclude = set(["patient_id", "name", "total_claim_cost"])
+df = df[[*front, *[c for c in df.columns if c not in exclude and c not in front]]]
 
 out_path = BASE + "patient_features.csv"
-df.to_csv(out_path, index=False)
+df.to_csv(out_path, index=False, sep=';')
 print(f"Saved {len(df):,} rows → {out_path}")
 print(df.dtypes)
 print(df.head(3).to_string())
