@@ -1,0 +1,6 @@
+DecisionTree with no cleaned up data. Mean error 133.22243290960452
+              add standard scaler = 679.12
+
+
+              gradient boosting: $457.29
+              random forest: $471.33

@@ -1,7 +1,8 @@
+import os
+import joblib
 import pandas as pd
 import numpy as np
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import HistGradientBoostingRegressor
@@ -33,3 +34,10 @@ model.fit(train_X, train_y)
 val_predictions = model.predict(val_X)
 mae = mean_absolute_error(np.expm1(val_y), np.expm1(val_predictions))
 print(f"MAE: ${mae:,.2f}")
+
+os.makedirs('api/artifacts', exist_ok=True)
+joblib.dump(model,                    'api/artifacts/model.pkl')
+joblib.dump(scaler,                   'api/artifacts/scaler.pkl')
+joblib.dump(medians,                  'api/artifacts/medians.pkl')
+joblib.dump(list(train_X.columns),   'api/artifacts/feature_columns.pkl')
+print("Artifacts saved to api/artifacts/")
