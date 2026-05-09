@@ -1,16 +1,18 @@
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
-from .predict import predict
+from api.predict import predict
 
 app = FastAPI(title="Healthcare Cost Estimator")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # lock this down to your React domain in production
+    allow_origins=["http://localhost:5173"],  # lock this down to your React domain in production
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
 
 

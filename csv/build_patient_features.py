@@ -21,13 +21,6 @@ disease_count = (
 )
 
 # ── observations: last value per patient per metric ───────────────────────────
-obs = pd.read_csv(
-    BASE + "observations.csv",
-    usecols=["DATE", "PATIENT", "DESCRIPTION", "VALUE", "UNITS"],
-    low_memory=False,
-)
-obs["DATE"] = pd.to_datetime(obs["DATE"], utc=True)
-
 METRIC_MAP = {
     "bmi":              ["Body mass index (BMI) [Ratio]"],
     "systolic_bp":      ["Systolic Blood Pressure"],
@@ -46,8 +39,21 @@ METRIC_MAP = {
     "is_smoker":        ["Tobacco smoking status"],
 }
 
-all_descriptions = [d for descs in METRIC_MAP.values() for d in descs]
-obs_filtered = obs[obs["DESCRIPTION"].isin(all_descriptions)].copy()
+all_descriptions = set(d for descs in METRIC_MAP.values() for d in descs)
+
+chunks = []
+for chunk in pd.read_csv(
+    BASE + "observations.csv",
+    usecols=["DATE", "PATIENT", "DESCRIPTION", "VALUE", "UNITS"],
+    chunksize=200_000,
+    dtype={"PATIENT": "str", "DESCRIPTION": "str", "VALUE": "str", "UNITS": "str"},
+):
+    filtered = chunk[chunk["DESCRIPTION"].isin(all_descriptions)]
+    if not filtered.empty:
+        chunks.append(filtered)
+
+obs_filtered = pd.concat(chunks, ignore_index=True)
+obs_filtered["DATE"] = pd.to_datetime(obs_filtered["DATE"], utc=True)
 
 # keep only the latest record per patient + description
 obs_filtered = obs_filtered.sort_values("DATE")
@@ -93,11 +99,14 @@ for col in list(METRIC_MAP.keys()):
     metric_df.drop(columns=[unit_col], inplace=True)
 
 # ── encounters: total cost + avg annual cost ──────────────────────────────────
-enc = pd.read_csv(
-    BASE + "encounters.csv",
-    usecols=["PATIENT", "START", "TOTAL_CLAIM_COST"],
-    low_memory=False,
-)
+enc = pd.concat([
+    chunk for chunk in pd.read_csv(
+        BASE + "encounters.csv",
+        usecols=["PATIENT", "START", "TOTAL_CLAIM_COST"],
+        chunksize=200_000,
+        low_memory=False,
+    )
+], ignore_index=True)
 enc["START"] = pd.to_datetime(enc["START"], utc=True)
 enc["TOTAL_CLAIM_COST"] = pd.to_numeric(enc["TOTAL_CLAIM_COST"], errors="coerce")
 enc["year"] = enc["START"].dt.year

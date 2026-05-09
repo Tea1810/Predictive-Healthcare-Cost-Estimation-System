@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import HistGradientBoostingRegressor
 
 df = pd.read_csv('csv/patient_features.csv', sep=';')
+df = df.dropna(subset=['target_avg_annual_cost'])
 
 y = np.log1p(df['target_avg_annual_cost'])
 X = df.drop(columns=['target_avg_annual_cost'])
