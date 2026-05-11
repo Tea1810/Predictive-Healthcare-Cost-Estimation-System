@@ -133,6 +133,9 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# Firebase service account key — never commit this
+api/serviceAccountKey.json
+
 # Environments
 .env
 .envrc
