@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import joblib
+import shap
 
 ARTIFACTS = os.path.join(os.path.dirname(__file__), 'artifacts')
 

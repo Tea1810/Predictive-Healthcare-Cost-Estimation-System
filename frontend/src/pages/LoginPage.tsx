@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -28,42 +28,56 @@ export default function LoginPage() {
   return (
     <div style={s.page}>
       <div style={s.card}>
-        <div style={s.header}>
-          <span style={s.icon}>&#10084;</span>
-          <div>
-            <h1 style={s.title}>Healthcare Cost Estimator</h1>
-            <p style={s.subtitle}>Sign in to your account</p>
-          </div>
+        <div style={s.iconWrap}>
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline
+              points="2,18 7,18 10,9 13,27 16,13 19,22 22,18 34,18"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
+
+        <h1 style={s.title}>Healthcare Cost Estimator</h1>
+        <p style={s.subtitle}>Sign in to access predictive cost analysis</p>
+
         <form onSubmit={handleSubmit} style={s.form}>
-          <label style={s.label}>Email</label>
-          <input
-            style={s.input}
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
-          <label style={s.label}>Password</label>
-          <input
-            style={s.input}
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-          />
+          <div style={s.fieldGroup}>
+            <label style={s.label}>Username</label>
+            <input
+              style={s.input}
+              type="email"
+              placeholder="Enter your username"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+          </div>
+          <div style={s.fieldGroup}>
+            <label style={s.label}>Password</label>
+            <input
+              style={s.input}
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+          </div>
           {error && <div style={s.error}>{error}</div>}
           <button style={s.btn} type="submit" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
-        <p style={s.footer}>
-          Don&apos;t have an account?{' '}
-          <Link to="/register" style={s.link}>Register</Link>
-        </p>
+
+        <p style={s.demoNote}>Demo mode: Use any credentials to login</p>
       </div>
+
+      <button style={s.helpBtn} title="Help" aria-label="Help">?</button>
     </div>
   )
 }
@@ -88,47 +102,85 @@ const s: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     alignItems: 'center',
     padding: '40px 16px',
-    background: 'linear-gradient(135deg, #e8f4fd 0%, #f0f4f8 100%)',
+    background: 'linear-gradient(160deg, #dce8f8 0%, #eef2fb 50%, #f0f4ff 100%)',
+    position: 'relative',
   },
   card: {
     background: '#fff',
-    borderRadius: 16,
-    boxShadow: '0 4px 24px rgba(0,0,0,0.09)',
-    padding: '36px 40px',
+    borderRadius: 20,
+    boxShadow: '0 8px 40px rgba(80,100,180,0.13)',
+    padding: '48px 44px 36px',
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 460,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
-  header: {
+  iconWrap: {
+    width: 68,
+    height: 68,
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #6c63ff 0%, #5a52e0 100%)',
     display: 'flex',
     alignItems: 'center',
-    gap: 16,
-    marginBottom: 28,
-    paddingBottom: 20,
-    borderBottom: '1px solid #e2e8f0',
+    justifyContent: 'center',
+    marginBottom: 22,
+    boxShadow: '0 4px 18px rgba(108,99,255,0.4)',
   },
-  icon: { fontSize: 32, color: '#e53e3e' },
-  title: { fontSize: 20, fontWeight: 700, color: '#1a202c', lineHeight: 1.2 },
-  subtitle: { fontSize: 13, color: '#718096', marginTop: 4 },
-  form: { display: 'flex', flexDirection: 'column', gap: 10 },
-  label: { fontSize: 13, fontWeight: 600, color: '#4a5568' },
+  title: {
+    fontSize: 26,
+    fontWeight: 800,
+    color: '#0f172a',
+    textAlign: 'center',
+    marginBottom: 8,
+    letterSpacing: '-0.3px',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#64748b',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+    width: '100%',
+  },
+  fieldGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    width: '100%',
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#1e293b',
+  },
   input: {
-    padding: '10px 12px',
-    borderRadius: 8,
-    border: '1.5px solid #e2e8f0',
+    padding: '12px 16px',
+    borderRadius: 10,
+    border: 'none',
+    background: '#f1f5f9',
     fontSize: 14,
     outline: 'none',
-    color: '#1a202c',
+    color: '#1e293b',
+    width: '100%',
+    boxSizing: 'border-box',
   },
   btn: {
-    marginTop: 8,
-    padding: '11px',
-    borderRadius: 8,
-    background: '#3182ce',
+    marginTop: 4,
+    padding: '14px',
+    borderRadius: 10,
+    background: '#0f172a',
     color: '#fff',
     fontWeight: 700,
     fontSize: 15,
     border: 'none',
     cursor: 'pointer',
+    width: '100%',
+    letterSpacing: '0.2px',
   },
   error: {
     background: '#fff5f5',
@@ -137,7 +189,28 @@ const s: Record<string, React.CSSProperties> = {
     padding: '10px 14px',
     color: '#c53030',
     fontSize: 13,
+    width: '100%',
+    boxSizing: 'border-box',
   },
-  footer: { marginTop: 20, textAlign: 'center', fontSize: 13, color: '#718096' },
-  link: { color: '#3182ce', fontWeight: 600, textDecoration: 'none' },
+  demoNote: {
+    marginTop: 20,
+    fontSize: 13,
+    color: '#94a3b8',
+    textAlign: 'center',
+  },
+  helpBtn: {
+    position: 'fixed',
+    bottom: 24,
+    right: 24,
+    width: 40,
+    height: 40,
+    borderRadius: '50%',
+    background: '#1e293b',
+    color: '#fff',
+    border: 'none',
+    fontSize: 16,
+    fontWeight: 700,
+    cursor: 'pointer',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+  },
 }

@@ -2,65 +2,56 @@ import PatientForm from './PatientForm.jsx'
 
 export default function Card({ form, set, loading, onSubmit, result, error }) {
   return (
-    <div style={s.page}>
-      <div style={s.card}>
-        <div style={s.header}>
-          <div style={s.headerIcon}>&#10084;</div>
-          <div>
-            <h1 style={s.title}>Healthcare Cost Estimator</h1>
-            <p style={s.subtitle}>Predict annual healthcare costs from patient clinical data</p>
+    <div style={s.card}>
+      <div style={s.cardHeader}>
+        <h2 style={s.cardTitle}>Client Health Information</h2>
+        <p style={s.cardSubtitle}>Enter patient data to generate cost predictions</p>
+      </div>
+
+      <PatientForm form={form} set={set} loading={loading} onSubmit={onSubmit} />
+
+      {result !== null && (
+        <div style={s.result}>
+          <div style={s.resultLabel}>Estimated Annual Healthcare Cost</div>
+          <div style={s.resultValue}>
+            ${result.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
+      )}
 
-        <PatientForm form={form} set={set} loading={loading} onSubmit={onSubmit} />
-
-        {result !== null && (
-          <div style={s.result}>
-            <div style={s.resultLabel}>Estimated Annual Healthcare Cost</div>
-            <div style={s.resultValue}>
-              ${result.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div style={s.errorBox}>
-            <strong>Error:</strong> {error}
-          </div>
-        )}
-      </div>
+      {error && (
+        <div style={s.errorBox}>
+          <strong>Error:</strong> {error}
+        </div>
+      )}
     </div>
   )
 }
 
 const s = {
-  page: {
-    minHeight: '100vh',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    padding: '40px 16px',
-    background: 'linear-gradient(135deg, #e8f4fd 0%, #f0f4f8 100%)',
-  },
   card: {
     background: '#fff',
     borderRadius: 16,
-    boxShadow: '0 4px 24px rgba(0,0,0,0.09)',
-    padding: '36px 40px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
+    padding: '32px 36px',
     width: '100%',
     maxWidth: 860,
   },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 16,
-    marginBottom: 32,
-    paddingBottom: 24,
-    borderBottom: '1px solid #e2e8f0',
+  cardHeader: {
+    marginBottom: 28,
+    paddingBottom: 20,
+    borderBottom: '1px solid #f1f5f9',
   },
-  headerIcon: { fontSize: 36, color: '#e53e3e' },
-  title: { fontSize: 24, fontWeight: 700, color: '#1a202c', lineHeight: 1.2 },
-  subtitle: { fontSize: 14, color: '#718096', marginTop: 4 },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: 700,
+    color: '#0f172a',
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: '#64748b',
+  },
   result: {
     marginTop: 28,
     background: 'linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%)',

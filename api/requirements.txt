@@ -5,3 +5,4 @@ pandas
 numpy
 joblib
 firebase-admin
+shap

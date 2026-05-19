@@ -22,9 +22,9 @@ export const FIELDS = {
 }
 
 export const initialForm = {
-  age: '',
+  age: '35',
   gender: '0',
-  num_diseases: '',
+  num_diseases: '0',
   is_smoker: '0',
   bmi: '', systolic_bp: '', diastolic_bp: '', heart_rate: '',
   hba1c: '', glucose: '', hdl_cholesterol: '', triglycerides: '',
