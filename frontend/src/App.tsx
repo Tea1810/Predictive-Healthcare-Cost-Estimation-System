@@ -10,10 +10,16 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 
 type Form = typeof initialForm
 
+type PredictionResult = {
+  estimated_annual_cost: number
+  contributions: Record<string, number>
+  report: string
+}
+
 function PredictorPage() {
   const { currentUser, logout } = useAuth()
   const [form, setForm] = useState<Form>(initialForm)
-  const [result, setResult] = useState<number | null>(null)
+  const [result, setResult] = useState<PredictionResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -39,8 +45,8 @@ function PredictorPage() {
     })
 
     try {
-      const cost = await predictCost(payload)
-      setResult(cost)
+      const data = await predictCost(payload)
+      setResult(data)
     } catch (err) {
       setError((err as Error).message)
     } finally {

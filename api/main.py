@@ -1,10 +1,14 @@
 import os
-import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional
+from fastapi.responses import Response
+
+from api.Models.PatientData import PatientData
+from api.Models.PredictionResponse import PredictionResponse
+from api.Models.ReportRequest import ReportRequest
 from api.predict import predict
+from api.report import generate_report
+from api.pdf import build_pdf
 import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth
 
@@ -31,33 +35,28 @@ async def verify_token(authorization: str = Header(...)):
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-
-class PatientData(BaseModel):
-    age: int
-    gender: int                          # 0 = M, 1 = F
-    num_diseases: int
-    bmi: Optional[float] = None
-    systolic_bp: Optional[float] = None
-    diastolic_bp: Optional[float] = None
-    heart_rate: Optional[float] = None
-    hba1c: Optional[float] = None
-    glucose: Optional[float] = None
-    hdl_cholesterol: Optional[float] = None
-    triglycerides: Optional[float] = None
-    pain_score: Optional[float] = None
-    creatinine: Optional[float] = None
-    egfr: Optional[float] = None
-    hemoglobin: Optional[float] = None
-    qaly_score: Optional[float] = None
-    gad7_score: Optional[float] = None
-    is_smoker: int = 0
-
-
-class PredictionResponse(BaseModel):
-    estimated_annual_cost: float
-
-
 @app.post("/predict", response_model=PredictionResponse, dependencies=[Depends(verify_token)])
 def predict_cost(patient: PatientData):
-    cost = predict(patient.model_dump())
-    return PredictionResponse(estimated_annual_cost=round(cost, 2))
+    patient_dict = patient.model_dump()
+    cost, contributions = predict(patient_dict)
+    report = generate_report(cost, contributions, patient_dict)
+    return PredictionResponse(
+        estimated_annual_cost=round(cost, 2),
+        contributions=contributions,
+        report=report,
+    )
+
+
+@app.post("/report/pdf", dependencies=[Depends(verify_token)])
+def download_report(body: ReportRequest):
+    pdf = build_pdf(
+        cost=body.estimated_annual_cost,
+        contributions=body.contributions,
+        report=body.report,
+        patient=body.patient,
+    )
+    return Response(
+        content=pdf.read(),
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=healthcare-cost-report.pdf"},
+    )

@@ -6,3 +6,5 @@ numpy
 joblib
 firebase-admin
 shap
+requests
+reportlab
