@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom'
 export default function RegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
+  const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -20,7 +21,7 @@ export default function RegisterPage() {
     setError(null)
     setLoading(true)
     try {
-      await register(email, password)
+      await register(email, password, displayName)
       navigate('/')
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? ''
@@ -41,6 +42,16 @@ export default function RegisterPage() {
           </div>
         </div>
         <form onSubmit={handleSubmit} style={s.form}>
+          <label style={s.label}>Full Name</label>
+          <input
+            style={s.input}
+            type="text"
+            value={displayName}
+            onChange={e => setDisplayName(e.target.value)}
+            required
+            autoComplete="name"
+            placeholder="e.g. Jane Smith"
+          />
           <label style={s.label}>Email</label>
           <input
             style={s.input}

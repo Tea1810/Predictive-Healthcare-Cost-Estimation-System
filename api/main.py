@@ -54,6 +54,7 @@ def download_report(body: ReportRequest):
         contributions=body.contributions,
         report=body.report,
         patient=body.patient,
+        patient_name=body.patient_name or "",
     )
     return Response(
         content=pdf.read(),

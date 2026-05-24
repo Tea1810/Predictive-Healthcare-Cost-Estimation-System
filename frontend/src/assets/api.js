@@ -19,10 +19,10 @@ export async function predictCost(payload) {
     return data  // { estimated_annual_cost, contributions, report }
 }
 
-export async function downloadReport({ estimated_annual_cost, contributions, report, patient }) {
+export async function downloadReport({ estimated_annual_cost, contributions, report, patient_name, patient }) {
     const response = await api.post(
         '/report/pdf',
-        { estimated_annual_cost, contributions, report, patient },
+        { estimated_annual_cost, contributions, report, patient_name, patient },
         { responseType: 'blob' },
     )
     const url = URL.createObjectURL(response.data)

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import PatientForm from './PatientForm.jsx'
 import { downloadReport } from '../assets/api.js'
 
-export default function Card({ form, set, loading, onSubmit, result, error }) {
+export default function Card({ form, set, loading, onSubmit, result, error, patientName }) {
   const [downloading, setDownloading] = useState(false)
 
   const handleDownload = async () => {
@@ -13,6 +13,7 @@ export default function Card({ form, set, loading, onSubmit, result, error }) {
         estimated_annual_cost: result.estimated_annual_cost,
         contributions: result.contributions,
         report: result.report,
+        patient_name: patientName ?? '',
         patient: {
           age: parseInt(form.age),
           gender: parseInt(form.gender),

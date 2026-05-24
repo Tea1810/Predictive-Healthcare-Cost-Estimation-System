@@ -54,7 +54,7 @@ function PredictorPage() {
     }
   }
 
-  const displayName = currentUser?.email?.split('@')[0] ?? 'User'
+  const displayName = currentUser?.displayName ?? currentUser?.email?.split('@')[0] ?? 'User'
 
   return (
     <div style={s.pageWrapper}>
@@ -94,6 +94,7 @@ function PredictorPage() {
           onSubmit={handleSubmit}
           result={result}
           error={error}
+          patientName={displayName}
         />
       </main>
     </div>
