@@ -9,6 +9,7 @@ from api.Models.ReportRequest import ReportRequest
 from api.predict import predict
 from api.report import generate_report
 from api.pdf import build_pdf
+from api.firestore_log import log_prediction, get_dashboard_stats
 import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth
 
@@ -40,11 +41,20 @@ def predict_cost(patient: PatientData):
     patient_dict = patient.model_dump()
     cost, contributions = predict(patient_dict)
     report = generate_report(cost, contributions, patient_dict)
+    log_prediction(cost, patient_dict)
     return PredictionResponse(
         estimated_annual_cost=round(cost, 2),
         contributions=contributions,
         report=report,
     )
+
+
+@app.get("/dashboard")
+def dashboard_stats():
+    try:
+        return get_dashboard_stats()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/report/pdf", dependencies=[Depends(verify_token)])

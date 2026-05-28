@@ -5,6 +5,7 @@ import { FIELDS, initialForm } from './constants/fields.js'
 import Card from './component/App.jsx'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import DashboardPage from './pages/DashboardPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './context/AuthContext'
 
@@ -76,6 +77,8 @@ function PredictorPage() {
             <div style={s.navSub}>Welcome, {displayName}</div>
           </div>
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <a href="/dashboard" style={s.dashLink}>Dashboard</a>
         <button style={s.logoutBtn} onClick={logout}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -84,6 +87,7 @@ function PredictorPage() {
           </svg>
           Logout
         </button>
+        </div>
       </header>
 
       <main style={s.main}>
@@ -108,6 +112,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route
             path="/"
             element={
@@ -167,6 +172,16 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 12,
     color: '#64748b',
     marginTop: 1,
+  },
+  dashLink: {
+    padding: '8px 16px',
+    borderRadius: 8,
+    background: '#f1f5f9',
+    border: '1.5px solid #e2e8f0',
+    color: '#6c63ff',
+    fontWeight: 600,
+    fontSize: 14,
+    textDecoration: 'none',
   },
   logoutBtn: {
     display: 'flex',
