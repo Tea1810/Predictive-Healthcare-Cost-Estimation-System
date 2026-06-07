@@ -19,9 +19,11 @@ def generate_report(cost: float, contributions: dict, patient: dict) -> str:
 
     gender = "male" if patient.get("gender") == 0 else "female"
     smoker = "a smoker" if patient.get("is_smoker") == 1 else "a non-smoker"
+    address = "Sara Harris" if gender == "female" else "John Doe"
 
     prompt = (
         f"You are a compassionate healthcare financial advisor writing a personalised report for a patient.\n\n"
+        f"Patient name: {address}\n"
         f"Patient profile: {patient.get('age')} year old {gender}, {smoker}, "
         f"with {patient.get('num_diseases')} diagnosed medical conditions.\n\n"
         f"Estimated annual healthcare cost: ${cost:,.2f}\n\n"
@@ -32,7 +34,7 @@ def generate_report(cost: float, contributions: dict, patient: dict) -> str:
         f"2. Which personal factors are having the biggest impact on their cost and why\n"
         f"3. Practical lifestyle suggestions that could help reduce their costs\n\n"
         f"Keep it under 200 words. Use plain language. Do not mention SHAP, machine learning, or AI. "
-        f"Write as if speaking directly to the patient using 'you' and 'your'."
+        f"Address the patient directly by name as '{address}' and use 'you' and 'your' throughout."
     )
 
     try:

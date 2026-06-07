@@ -35,6 +35,16 @@ export default function Card({ form, set, loading, onSubmit, result, error, pati
 
       <PatientForm form={form} set={set} loading={loading} onSubmit={onSubmit} />
 
+      {loading && (
+        <>
+          <style>{`@keyframes _spin { to { transform: rotate(360deg) } }`}</style>
+          <div style={s.loadingBox}>
+            <div style={{ ...s.spinner, animation: '_spin 0.75s linear infinite' }} />
+            <span style={s.loadingText}>Analysing health data and generating your estimate…</span>
+          </div>
+        </>
+      )}
+
       {result !== null && (
         <>
           <div style={s.result}>
@@ -87,6 +97,29 @@ const s = {
   cardSubtitle: {
     fontSize: 14,
     color: '#64748b',
+  },
+  loadingBox: {
+    marginTop: 24,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    background: '#f8f9ff',
+    border: '1.5px solid #e0deff',
+    borderRadius: 12,
+    padding: '18px 22px',
+  },
+  spinner: {
+    width: 22,
+    height: 22,
+    borderRadius: '50%',
+    border: '3px solid #e0deff',
+    borderTopColor: '#6c63ff',
+    flexShrink: 0,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#4a44a8',
+    fontWeight: 500,
   },
   result: {
     marginTop: 28,

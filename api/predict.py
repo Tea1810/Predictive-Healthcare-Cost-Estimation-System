@@ -33,7 +33,7 @@ FIELD_MAP = {
     "is_smoker":       "is_smoker",
 }
 
-# Human-readable display names for SHAP contributions
+# Display names for SHAP contributions
 CLEAN_NAMES = {
     "age":                    "Age",
     "gender (Sex 0=M, 1=F)":  "Gender",

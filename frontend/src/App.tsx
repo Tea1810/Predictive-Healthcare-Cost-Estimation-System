@@ -48,8 +48,9 @@ function PredictorPage() {
     try {
       const data = await predictCost(payload)
       setResult(data)
-    } catch (err) {
-      setError((err as Error).message)
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } }; message?: string }
+      setError(axiosErr.response?.data?.detail ?? axiosErr.message ?? 'Estimation failed. Please try again.')
     } finally {
       setLoading(false)
     }

@@ -126,12 +126,6 @@ def build_pdf(cost: float, contributions: dict, report: str, patient: dict, pati
         _style('sec-title2', fontSize=12, fontName='Helvetica-Bold', textColor=_DARK),
     ))
     story.append(Spacer(1, 3 * mm))
-    greeting = f"Dear {patient_name}," if patient_name else "Dear Patient,"
-    story.append(Paragraph(
-        greeting,
-        _style('report-greeting', fontSize=10, fontName='Helvetica-Bold',
-               textColor=colors.HexColor('#334155'), leading=16),
-    ))
     story.append(Spacer(1, 2 * mm))
     story.append(Paragraph(
         report.replace('\n', '<br/>'),
