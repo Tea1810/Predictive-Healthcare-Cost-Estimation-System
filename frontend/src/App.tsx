@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Icon from './components/Icon'
+import { CsvService } from './services/CsvService'
 
 type Form = typeof initialForm
 
@@ -16,49 +17,6 @@ type PredictionResult = {
   estimated_annual_cost: number
   contributions: Record<string, number>
   report: string
-}
-
-function detectDelimiter(line: string): string {
-  const semis = (line.match(/;/g) ?? []).length
-  const commas = (line.match(/,/g) ?? []).length
-  return semis > commas ? ';' : ','
-}
-
-function parseCsvLine(line: string, delimiter: string): string[] {
-  if (delimiter === ';') return line.split(';').map(v => v.trim())
-  const result: string[] = []
-  let current = ''
-  let inQuotes = false
-  for (const ch of line) {
-    if (ch === '"') { inQuotes = !inQuotes }
-    else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = '' }
-    else { current += ch }
-  }
-  result.push(current.trim())
-  return result
-}
-
-function extractKey(header: string): string {
-  // strip everything from the first space or '(' so "bmi (kg/m2)" → "bmi"
-  return header.toLowerCase().split(/[\s(]/)[0].trim()
-}
-
-function mapCsvRow(headers: string[], values: string[]): Form {
-  const row: Record<string, string> = { ...initialForm }
-  headers.forEach((h, i) => {
-    const key = extractKey(h)
-    const val = (values[i] ?? '').trim()
-    if (key === 'gender') {
-      const v = val.toLowerCase()
-      row.gender = (v === 'female' || v === 'f' || v === '1') ? '1' : '0'
-    } else if (key === 'is_smoker' || key === 'smoker') {
-      const v = val.toLowerCase()
-      row.is_smoker = (v === '1' || v === 'yes' || v === 'true' || v === 'smoker') ? '1' : '0'
-    } else if (key in initialForm) {
-      row[key] = val
-    }
-  })
-  return row as Form
 }
 
 function PredictorPage() {
@@ -103,24 +61,15 @@ function PredictorPage() {
   }
 
   const handleCsvLoad = (file: File) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const text = (e.target?.result as string) ?? ''
-      const lines = text.split(/\r?\n/).filter(l => l.trim())
-      if (lines.length < 2) return
-      const delim = detectDelimiter(lines[0])
-      const headers = parseCsvLine(lines[0], delim)
-      const rows: Form[] = []
-      for (let i = 1; i < lines.length; i++) {
-        rows.push(mapCsvRow(headers, parseCsvLine(lines[i], delim)))
-      }
-      setCsvRows(rows)
-      setCsvIndex(0)
-      setForm(rows[0])
-      setResult(null)
-      setError(null)
-    }
-    reader.readAsText(file)
+    CsvService.parseFile(file)
+      .then(rows => {
+        setCsvRows(rows)
+        setCsvIndex(0)
+        setForm(rows[0])
+        setResult(null)
+        setError(null)
+      })
+      .catch(err => setError((err as Error).message))
   }
 
   const csvPrev = () => {

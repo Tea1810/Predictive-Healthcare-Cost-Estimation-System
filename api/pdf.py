@@ -15,7 +15,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-_PURPLE   = colors.HexColor('#6c63ff')
+_GREEN    = colors.HexColor('#006838')
 _DARK     = colors.HexColor('#0f172a')
 _SLATE    = colors.HexColor('#64748b')
 _LIGHT_BG = colors.HexColor('#f1f5f9')
@@ -53,7 +53,7 @@ def build_pdf(cost: float, contributions: dict, report: str, patient: dict, pati
         colWidths=[120 * mm, 50 * mm],
     )
     header_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), _PURPLE),
+        ('BACKGROUND', (0, 0), (-1, -1), _GREEN),
         ('TOPPADDING',    (0, 0), (-1, -1), 12),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
         ('LEFTPADDING',   (0, 0), (-1, -1), 14),
@@ -81,7 +81,7 @@ def build_pdf(cost: float, contributions: dict, report: str, patient: dict, pati
     story.append(Spacer(1, 2 * mm))
     story.append(Paragraph(
         f'${cost:,.2f}',
-        _style('cost-val', fontSize=34, fontName='Helvetica-Bold', textColor=_PURPLE),
+        _style('cost-val', fontSize=34, fontName='Helvetica-Bold', textColor=_GREEN),
     ))
     story.append(Spacer(1, 7 * mm))
     story.append(HRFlowable(width='100%', thickness=1, color=_LIGHT_BG))
@@ -100,7 +100,7 @@ def build_pdf(cost: float, contributions: dict, report: str, patient: dict, pati
         rows.append([name, f'{pct:+.1f}%', 'Increases cost' if pct > 0 else 'Reduces cost'])
 
     style_cmds = [
-        ('BACKGROUND',    (0, 0), (-1, 0), _PURPLE),
+        ('BACKGROUND',    (0, 0), (-1, 0), _GREEN),
         ('TEXTCOLOR',     (0, 0), (-1, 0), colors.white),
         ('FONTNAME',      (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE',      (0, 0), (-1, -1), 9),
