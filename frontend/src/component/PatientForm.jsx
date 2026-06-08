@@ -4,12 +4,12 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
   return (
     <form onSubmit={onSubmit}>
 
-      {/* Primary fields */}
       <section style={s.section}>
         <div style={s.sliderRow}>
-          <label style={s.label}>
-            Age: <strong style={s.sliderVal}>{form.age} years</strong>
-          </label>
+          <div style={s.sliderHeader}>
+            <label style={s.label}>Age</label>
+            <span style={s.sliderBadge}>{form.age} years</span>
+          </div>
           <input
             style={s.range}
             type="range"
@@ -19,6 +19,9 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
             value={form.age}
             onChange={set('age')}
           />
+          <div style={s.rangeEnds}>
+            <span>0</span><span>120</span>
+          </div>
         </div>
 
         <div style={s.grid2}>
@@ -46,9 +49,10 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
         </div>
 
         <div style={s.sliderRow}>
-          <label style={s.label}>
-            Number of Conditions: <strong style={s.sliderVal}>{form.num_diseases}</strong>
-          </label>
+          <div style={s.sliderHeader}>
+            <label style={s.label}>Number of Conditions</label>
+            <span style={s.sliderBadge}>{form.num_diseases}</span>
+          </div>
           <input
             style={s.range}
             type="range"
@@ -58,20 +62,23 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
             value={form.num_diseases}
             onChange={set('num_diseases')}
           />
+          <div style={s.rangeEnds}>
+            <span>0</span><span>50</span>
+          </div>
         </div>
       </section>
 
-      {/* Optional clinical measurements */}
       <section style={s.section}>
-        <h2 style={s.sectionTitle}>
-          Clinical Measurements <span style={s.optional}>(optional)</span>
-        </h2>
+        <div style={s.sectionHeader}>
+          <h2 style={s.sectionTitle}>Clinical Measurements</h2>
+          <span style={s.optionalTag}>Optional</span>
+        </div>
         <div style={s.grid3}>
           {FIELDS.optional.map(({ key, label, unit, step, placeholder }) => (
             <div key={key} style={s.field}>
               <label style={s.label}>
                 {label}
-                {unit && <span style={s.unit}> {unit}</span>}
+                {unit && <span style={s.unit}> ({unit})</span>}
               </label>
               <input
                 style={s.input}
@@ -91,7 +98,7 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
         style={{ ...s.btn, ...(loading ? s.btnDisabled : {}) }}
         disabled={loading}
       >
-        {loading ? 'Estimating...' : 'Estimate Cost'}
+        {loading ? 'Estimating…' : 'Estimate Cost'}
       </button>
     </form>
   )
@@ -99,32 +106,58 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
 
 const s = {
   section: { marginBottom: 28 },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: '#475569',
-    marginBottom: 14,
-    textTransform: 'uppercase',
-    letterSpacing: '0.07em',
+  sectionHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+    paddingBottom: 10,
+    borderBottom: '1.5px solid #edf2ed',
   },
-  optional: {
-    fontWeight: 400,
-    textTransform: 'none',
-    fontSize: 12,
-    color: '#94a3b8',
-    letterSpacing: 0,
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: '#1a1f1a',
+  },
+  optionalTag: {
+    fontSize: 11,
+    fontWeight: 600,
+    color: '#006838',
+    background: '#e8f5ee',
+    border: '1px solid #b2dfc4',
+    padding: '2px 9px',
+    borderRadius: 12,
   },
   sliderRow: {
+    marginBottom: 22,
+  },
+  sliderHeader: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: 10,
-    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  sliderBadge: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: '#006838',
+    background: '#e8f5ee',
+    border: '1px solid #b2dfc4',
+    padding: '2px 10px',
+    borderRadius: 12,
+  },
+  rangeEnds: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: 11,
+    color: '#9aaa9a',
+    marginTop: 4,
   },
   grid2: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
     gap: '16px 24px',
-    marginBottom: 20,
+    marginBottom: 22,
   },
   grid3: {
     display: 'grid',
@@ -132,24 +165,23 @@ const s = {
     gap: '14px 20px',
   },
   field: { display: 'flex', flexDirection: 'column', gap: 6 },
-  label: { fontSize: 13, fontWeight: 500, color: '#475569' },
-  sliderVal: { color: '#0f172a', fontWeight: 700 },
-  unit: { fontWeight: 400, color: '#94a3b8', fontSize: 12 },
+  label: { fontSize: 13, fontWeight: 600, color: '#4a5a4a' },
+  unit: { fontWeight: 400, color: '#9aaa9a', fontSize: 12 },
   range: {
     width: '100%',
-    accentColor: '#0f172a',
+    accentColor: '#006838',
     cursor: 'pointer',
     height: 4,
   },
   input: {
-    border: 'none',
-    background: '#f1f5f9',
+    border: '1.5px solid #dde3dd',
+    background: '#fff',
     borderRadius: 8,
     padding: '10px 12px',
     fontSize: 14,
     outline: 'none',
     width: '100%',
-    color: '#1e293b',
+    color: '#1a1f1a',
     boxSizing: 'border-box',
   },
   selectWrap: {
@@ -158,15 +190,15 @@ const s = {
     alignItems: 'center',
   },
   select: {
-    border: 'none',
-    background: '#f1f5f9',
+    border: '1.5px solid #dde3dd',
+    background: '#fff',
     borderRadius: 8,
     padding: '10px 36px 10px 12px',
     fontSize: 14,
     outline: 'none',
     width: '100%',
     cursor: 'pointer',
-    color: '#1e293b',
+    color: '#1a1f1a',
     appearance: 'none',
     WebkitAppearance: 'none',
   },
@@ -174,22 +206,22 @@ const s = {
     position: 'absolute',
     right: 12,
     fontSize: 18,
-    color: '#64748b',
+    color: '#7a8a7a',
     pointerEvents: 'none',
     lineHeight: 1,
   },
   btn: {
-    marginTop: 8,
     width: '100%',
     padding: '14px',
-    background: '#0f172a',
+    background: '#006838',
     color: '#fff',
     border: 'none',
     borderRadius: 10,
     fontSize: 16,
-    fontWeight: 600,
+    fontWeight: 700,
     cursor: 'pointer',
-    transition: 'opacity 0.15s',
+    transition: 'background 0.15s',
+    letterSpacing: '0.1px',
   },
   btnDisabled: { opacity: 0.6, cursor: 'not-allowed' },
 }

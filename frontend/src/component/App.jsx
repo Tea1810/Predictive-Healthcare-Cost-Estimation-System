@@ -29,45 +29,61 @@ export default function Card({ form, set, loading, onSubmit, result, error, pati
   return (
     <div style={s.card}>
       <div style={s.cardHeader}>
-        <h2 style={s.cardTitle}>Client Health Information</h2>
-        <p style={s.cardSubtitle}>Enter patient data to generate cost predictions</p>
+        <div style={s.cardHeaderLeft}>
+          <div style={s.headerIcon}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div>
+            <h2 style={s.cardTitle}>Client Health Information</h2>
+            <p style={s.cardSubtitle}>Enter patient data to generate a cost prediction</p>
+          </div>
+        </div>
       </div>
 
-      <PatientForm form={form} set={set} loading={loading} onSubmit={onSubmit} />
+      <div style={s.cardBody}>
+        <PatientForm form={form} set={set} loading={loading} onSubmit={onSubmit} />
+      </div>
 
       {loading && (
         <>
-          <style>{`@keyframes _spin { to { transform: rotate(360deg) } }`}</style>
+          <style>{`@keyframes medicost_spin { to { transform: rotate(360deg) } }`}</style>
           <div style={s.loadingBox}>
-            <div style={{ ...s.spinner, animation: '_spin 0.75s linear infinite' }} />
-            <span style={s.loadingText}>Analysing health data and generating your estimate…</span>
+            <div style={{ ...s.spinner, animation: 'medicost_spin 0.75s linear infinite' }} />
+            <div>
+              <div style={s.loadingTitle}>Analysing health data…</div>
+              <div style={s.loadingText}>Generating your personalised cost estimate</div>
+            </div>
           </div>
         </>
       )}
 
       {result !== null && (
-        <>
-          <div style={s.result}>
-            <div style={s.resultLabel}>Estimated Annual Healthcare Cost</div>
+        <div style={s.resultSection}>
+          <div style={s.resultCard}>
+            <div style={s.resultBadge}>Estimated Annual Cost</div>
             <div style={s.resultValue}>
               ${result.estimated_annual_cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
+            <div style={s.resultNote}>This is a predictive estimate based on the entered health profile.</div>
           </div>
-
           <button style={s.downloadBtn} onClick={handleDownload} disabled={downloading}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 8 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 8 }}>
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            {downloading ? 'Generating PDF…' : 'Download Report'}
+            {downloading ? 'Generating PDF…' : 'Download Full Report'}
           </button>
-        </>
+        </div>
       )}
 
       {error && (
         <div style={s.errorBox}>
-          <strong>Error:</strong> {error}
+          <strong>Error: </strong>{error}
         </div>
       )}
     </div>
@@ -78,73 +94,107 @@ const s = {
   card: {
     background: '#fff',
     borderRadius: 16,
-    boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
-    padding: '32px 36px',
+    boxShadow: '0 2px 14px rgba(0,60,30,0.08)',
     width: '100%',
     maxWidth: 860,
+    overflow: 'hidden',
   },
   cardHeader: {
-    marginBottom: 28,
-    paddingBottom: 20,
-    borderBottom: '1px solid #f1f5f9',
+    background: '#004d29',
+    padding: '20px 32px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: 700,
-    color: '#0f172a',
-    marginBottom: 4,
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#64748b',
-  },
-  loadingBox: {
-    marginTop: 24,
+  cardHeaderLeft: {
     display: 'flex',
     alignItems: 'center',
     gap: 14,
-    background: '#f8f9ff',
-    border: '1.5px solid #e0deff',
-    borderRadius: 12,
+  },
+  headerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    background: 'rgba(255,255,255,0.15)',
+    border: '1.5px solid rgba(255,255,255,0.25)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: '#fff',
+    marginBottom: 2,
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.75)',
+  },
+  cardBody: {
+    padding: '28px 32px',
+  },
+  loadingBox: {
+    margin: '0 32px 28px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+    background: '#e8f5ee',
+    border: '1.5px solid #b2dfc4',
+    borderRadius: 10,
     padding: '18px 22px',
   },
   spinner: {
     width: 22,
     height: 22,
     borderRadius: '50%',
-    border: '3px solid #e0deff',
-    borderTopColor: '#6c63ff',
+    border: '3px solid #b2dfc4',
+    borderTopColor: '#006838',
     flexShrink: 0,
   },
-  loadingText: {
-    fontSize: 14,
-    color: '#4a44a8',
-    fontWeight: 500,
+  loadingTitle: { fontSize: 14, color: '#006838', fontWeight: 700 },
+  loadingText: { fontSize: 12, color: '#4a8a6a', marginTop: 2 },
+  resultSection: {
+    margin: '0 32px 28px',
   },
-  result: {
-    marginTop: 28,
-    background: 'linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%)',
-    border: '1.5px solid #90cdf4',
+  resultCard: {
+    background: '#e8f5ee',
+    border: '1.5px solid #a8d8ba',
     borderRadius: 12,
     padding: '24px 28px',
     textAlign: 'center',
+    marginBottom: 14,
   },
-  resultLabel: {
-    fontSize: 14,
-    color: '#2c5282',
-    fontWeight: 500,
-    marginBottom: 8,
+  resultBadge: {
+    display: 'inline-block',
+    background: '#006838',
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 700,
+    padding: '4px 14px',
+    borderRadius: 20,
     textTransform: 'uppercase',
-    letterSpacing: '0.05em',
+    letterSpacing: '0.08em',
+    marginBottom: 16,
   },
-  resultValue: { fontSize: 40, fontWeight: 800, color: '#1a365d' },
+  resultValue: {
+    fontSize: 44,
+    fontWeight: 800,
+    color: '#006838',
+    lineHeight: 1,
+    marginBottom: 10,
+  },
+  resultNote: {
+    fontSize: 13,
+    color: '#4a7a5a',
+  },
   downloadBtn: {
-    marginTop: 16,
     width: '100%',
     padding: '13px',
     background: '#fff',
-    border: '1.5px solid #6c63ff',
-    color: '#6c63ff',
+    border: '1.5px solid #006838',
+    color: '#006838',
     borderRadius: 10,
     fontWeight: 700,
     fontSize: 14,
@@ -152,11 +202,12 @@ const s = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    transition: 'background 0.15s',
   },
   errorBox: {
-    marginTop: 20,
+    margin: '0 32px 28px',
     background: '#fff5f5',
-    border: '1px solid #feb2b2',
+    border: '1px solid #fcbcbc',
     borderRadius: 10,
     padding: '14px 18px',
     color: '#c53030',

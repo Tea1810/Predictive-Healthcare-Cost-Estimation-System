@@ -62,34 +62,40 @@ function PredictorPage() {
     <div style={s.pageWrapper}>
       <header style={s.navbar}>
         <div style={s.navLeft}>
-          <div style={s.navIcon}>
-            <svg width="22" height="22" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <polyline
-                points="2,18 7,18 10,9 13,27 16,13 19,22 22,18 34,18"
-                stroke="white"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+          <div style={s.navLogo}>
+            <svg width="20" height="20" viewBox="0 0 36 36" fill="none">
+              <polyline points="2,18 7,18 10,9 13,27 16,13 19,22 22,18 34,18"
+                stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <div>
-            <div style={s.navTitle}>Healthcare Cost Estimator</div>
-            <div style={s.navSub}>Welcome, {displayName}</div>
+            <div style={s.navTitle}>MediCost</div>
+            <div style={s.navSub}>Healthcare Cost Estimator</div>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <a href="/dashboard" style={s.dashLink}>Dashboard</a>
-        <button style={s.logoutBtn} onClick={logout}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-          Logout
-        </button>
+        <div style={s.navRight}>
+          <a href="/dashboard" style={s.dashLink}>Analytics</a>
+          <div style={s.userChip}>
+            <div style={s.userAvatar}>{displayName.charAt(0).toUpperCase()}</div>
+            <span style={s.userName}>{displayName}</span>
+          </div>
+          <button style={s.logoutBtn} onClick={logout}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
         </div>
       </header>
+
+      <div style={s.heroBanner}>
+        <div style={s.heroContent}>
+          <h1 style={s.heroTitle}>Cost Estimation</h1>
+          <p style={s.heroSub}>Fill in the patient details below to receive an AI-powered annual healthcare cost estimate.</p>
+        </div>
+      </div>
 
       <main style={s.main}>
         <Card
@@ -102,6 +108,13 @@ function PredictorPage() {
           patientName={displayName}
         />
       </main>
+
+      <footer style={s.footer}>
+        <div style={s.footerInner}>
+          <span style={s.footerBrand}>MediCost</span>
+          <span style={s.footerText}>Predictions are estimates only and do not constitute medical or financial advice.</span>
+        </div>
+      </footer>
     </div>
   )
 }
@@ -132,7 +145,7 @@ export default function App() {
 const s: Record<string, React.CSSProperties> = {
   pageWrapper: {
     minHeight: '100vh',
-    background: '#f1f5f9',
+    background: '#f4f6f4',
     display: 'flex',
     flexDirection: 'column',
   },
@@ -141,66 +154,130 @@ const s: Record<string, React.CSSProperties> = {
     top: 0,
     zIndex: 100,
     background: '#fff',
-    borderBottom: '1px solid #e2e8f0',
-    padding: '12px 32px',
+    borderBottom: '1.5px solid #dde3dd',
+    boxShadow: '0 1px 4px rgba(0,60,30,0.06)',
+    padding: '0 32px',
+    height: 64,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
   },
   navLeft: {
     display: 'flex',
     alignItems: 'center',
     gap: 14,
   },
-  navIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #6c63ff 0%, #5a52e0 100%)',
+  navLogo: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    background: '#006838',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  navTitle: {
-    fontSize: 18,
-    fontWeight: 700,
-    color: '#0f172a',
-    lineHeight: 1.3,
+  navTitle: { fontSize: 17, fontWeight: 800, color: '#1a1f1a', lineHeight: 1.2 },
+  navSub: { fontSize: 12, color: '#7a8a7a', marginTop: 2 },
+  navRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
   },
-  navSub: {
+  userChip: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '5px 12px 5px 6px',
+    borderRadius: 20,
+    background: '#e8f5ee',
+    border: '1.5px solid #b2dfc4',
+    marginRight: 4,
+  },
+  userAvatar: {
+    width: 26,
+    height: 26,
+    borderRadius: '50%',
+    background: '#006838',
+    color: '#fff',
     fontSize: 12,
-    color: '#64748b',
-    marginTop: 1,
+    fontWeight: 700,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  userName: { fontSize: 13, fontWeight: 600, color: '#006838' },
   dashLink: {
-    padding: '8px 16px',
-    borderRadius: 8,
-    background: '#f1f5f9',
-    border: '1.5px solid #e2e8f0',
-    color: '#6c63ff',
+    padding: '7px 16px',
+    borderRadius: 7,
+    background: '#f4f6f4',
+    border: '1.5px solid #dde3dd',
+    color: '#4a5a4a',
     fontWeight: 600,
-    fontSize: 14,
+    fontSize: 13,
     textDecoration: 'none',
   },
   logoutBtn: {
     display: 'flex',
     alignItems: 'center',
-    padding: '8px 18px',
-    borderRadius: 8,
+    padding: '4px 4px',
+    borderRadius: 7,
     background: '#fff',
-    border: '1.5px solid #e2e8f0',
-    color: '#475569',
+    border: '1.5px solid #dde3dd',
+    color: '#7a8a7a',
     fontWeight: 600,
-    fontSize: 14,
+    fontSize: 13,
     cursor: 'pointer',
+  },
+  heroBanner: {
+    background: '#004d29',
+    padding: '28px 0',
+  },
+  heroContent: {
+    maxWidth: 1000,
+    margin: '0 auto',
+    padding: '0 32px',
+  },
+  heroTitle: {
+    fontSize: 26,
+    fontWeight: 800,
+    color: '#fff',
+    marginBottom: 6,
+  },
+  heroSub: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.75)',
   },
   main: {
     flex: 1,
-    padding: '32px 16px',
+    padding: '36px 24px',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'flex-start',
+    maxWidth: 1000,
+    margin: '0 auto',
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  footer: {
+    background: '#fff',
+    borderTop: '1.5px solid #dde3dd',
+  },
+  footerInner: {
+    maxWidth: 1000,
+    margin: '0 auto',
+    padding: '16px 32px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+  },
+  footerBrand: {
+    fontSize: 13,
+    fontWeight: 800,
+    color: '#006838',
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#9aaa9a',
   },
 }

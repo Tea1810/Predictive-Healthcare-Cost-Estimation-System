@@ -19,7 +19,7 @@ def generate_report(cost: float, contributions: dict, patient: dict) -> str:
 
     gender = "male" if patient.get("gender") == 0 else "female"
     smoker = "a smoker" if patient.get("is_smoker") == 1 else "a non-smoker"
-    address = "Sara Harris" if gender == "female" else "John Doe"
+    address = "Sara Harris" if gender == "female" else "Mark"
 
     prompt = (
         f"You are a compassionate healthcare financial advisor writing a personalised report for a patient.\n\n"

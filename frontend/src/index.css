@@ -1,8 +1,32 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+:root {
+  --green-primary: #006838;
+  --green-hover: #005230;
+  --green-light: #00a550;
+  --green-bg: #e8f5ee;
+  --green-border: #b2dfc4;
+  --gray-bg: #f4f6f4;
+  --gray-border: #dde3dd;
+  --text-dark: #1a1f1a;
+  --text-mid: #4a5a4a;
+  --text-muted: #7a8a7a;
+  --white: #ffffff;
+  --shadow-sm: 0 1px 4px rgba(0,60,30,0.08);
+  --shadow-md: 0 4px 20px rgba(0,60,30,0.12);
+  --shadow-lg: 0 8px 40px rgba(0,60,30,0.16);
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #f0f4f8;
-  color: #1a202c;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  background: var(--gray-bg);
+  color: var(--text-dark);
   min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+input:focus, select:focus, button:focus {
+  outline: 2px solid var(--green-light);
+  outline-offset: 2px;
 }
