@@ -8,6 +8,7 @@ import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import Icon from './components/Icon'
 
 type Form = typeof initialForm
 
@@ -17,12 +18,57 @@ type PredictionResult = {
   report: string
 }
 
+function detectDelimiter(line: string): string {
+  const semis = (line.match(/;/g) ?? []).length
+  const commas = (line.match(/,/g) ?? []).length
+  return semis > commas ? ';' : ','
+}
+
+function parseCsvLine(line: string, delimiter: string): string[] {
+  if (delimiter === ';') return line.split(';').map(v => v.trim())
+  const result: string[] = []
+  let current = ''
+  let inQuotes = false
+  for (const ch of line) {
+    if (ch === '"') { inQuotes = !inQuotes }
+    else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = '' }
+    else { current += ch }
+  }
+  result.push(current.trim())
+  return result
+}
+
+function extractKey(header: string): string {
+  // strip everything from the first space or '(' so "bmi (kg/m2)" → "bmi"
+  return header.toLowerCase().split(/[\s(]/)[0].trim()
+}
+
+function mapCsvRow(headers: string[], values: string[]): Form {
+  const row: Record<string, string> = { ...initialForm }
+  headers.forEach((h, i) => {
+    const key = extractKey(h)
+    const val = (values[i] ?? '').trim()
+    if (key === 'gender') {
+      const v = val.toLowerCase()
+      row.gender = (v === 'female' || v === 'f' || v === '1') ? '1' : '0'
+    } else if (key === 'is_smoker' || key === 'smoker') {
+      const v = val.toLowerCase()
+      row.is_smoker = (v === '1' || v === 'yes' || v === 'true' || v === 'smoker') ? '1' : '0'
+    } else if (key in initialForm) {
+      row[key] = val
+    }
+  })
+  return row as Form
+}
+
 function PredictorPage() {
   const { currentUser, logout } = useAuth()
   const [form, setForm] = useState<Form>(initialForm)
   const [result, setResult] = useState<PredictionResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [csvRows, setCsvRows] = useState<Form[]>([])
+  const [csvIndex, setCsvIndex] = useState(-1)
 
   const set = (key: keyof Form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -56,6 +102,43 @@ function PredictorPage() {
     }
   }
 
+  const handleCsvLoad = (file: File) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const text = (e.target?.result as string) ?? ''
+      const lines = text.split(/\r?\n/).filter(l => l.trim())
+      if (lines.length < 2) return
+      const delim = detectDelimiter(lines[0])
+      const headers = parseCsvLine(lines[0], delim)
+      const rows: Form[] = []
+      for (let i = 1; i < lines.length; i++) {
+        rows.push(mapCsvRow(headers, parseCsvLine(lines[i], delim)))
+      }
+      setCsvRows(rows)
+      setCsvIndex(0)
+      setForm(rows[0])
+      setResult(null)
+      setError(null)
+    }
+    reader.readAsText(file)
+  }
+
+  const csvPrev = () => {
+    if (csvIndex <= 0) return
+    const idx = csvIndex - 1
+    setCsvIndex(idx)
+    setForm(csvRows[idx])
+    setResult(null)
+  }
+
+  const csvNext = () => {
+    if (csvIndex >= csvRows.length - 1) return
+    const idx = csvIndex + 1
+    setCsvIndex(idx)
+    setForm(csvRows[idx])
+    setResult(null)
+  }
+
   const displayName = currentUser?.displayName ?? currentUser?.email?.split('@')[0] ?? 'User'
 
   return (
@@ -63,10 +146,7 @@ function PredictorPage() {
       <header style={s.navbar}>
         <div style={s.navLeft}>
           <div style={s.navLogo}>
-            <svg width="20" height="20" viewBox="0 0 36 36" fill="none">
-              <polyline points="2,18 7,18 10,9 13,27 16,13 19,22 22,18 34,18"
-                stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <Icon name="heartbeat" size={20} color="white" />
           </div>
           <div>
             <div style={s.navTitle}>MediCost</div>
@@ -80,12 +160,7 @@ function PredictorPage() {
             <span style={s.userName}>{displayName}</span>
           </div>
           <button style={s.logoutBtn} onClick={logout}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
+            <Icon name="logout" size={16} />
           </button>
         </div>
       </header>
@@ -106,6 +181,11 @@ function PredictorPage() {
           result={result}
           error={error}
           patientName={displayName}
+          csvRows={csvRows}
+          csvIndex={csvIndex}
+          onCsvLoad={handleCsvLoad}
+          onCsvPrev={csvPrev}
+          onCsvNext={csvNext}
         />
       </main>
 
@@ -162,122 +242,49 @@ const s: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  navLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-  },
+  navLeft: { display: 'flex', alignItems: 'center', gap: 14 },
   navLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    background: '#006838',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
+    width: 40, height: 40, borderRadius: 10, background: '#006838',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
   navTitle: { fontSize: 17, fontWeight: 800, color: '#1a1f1a', lineHeight: 1.2 },
   navSub: { fontSize: 12, color: '#7a8a7a', marginTop: 2 },
-  navRight: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-  },
+  navRight: { display: 'flex', alignItems: 'center', gap: 10 },
   userChip: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '5px 12px 5px 6px',
-    borderRadius: 20,
-    background: '#e8f5ee',
-    border: '1.5px solid #b2dfc4',
-    marginRight: 4,
+    display: 'flex', alignItems: 'center', gap: 8,
+    padding: '5px 12px 5px 6px', borderRadius: 20,
+    background: '#e8f5ee', border: '1.5px solid #b2dfc4',
   },
   userAvatar: {
-    width: 26,
-    height: 26,
-    borderRadius: '50%',
-    background: '#006838',
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 700,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 26, height: 26, borderRadius: '50%', background: '#006838',
+    color: '#fff', fontSize: 12, fontWeight: 700,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   userName: { fontSize: 13, fontWeight: 600, color: '#006838' },
   dashLink: {
-    padding: '7px 16px',
-    borderRadius: 7,
-    background: '#f4f6f4',
-    border: '1.5px solid #dde3dd',
-    color: '#4a5a4a',
-    fontWeight: 600,
-    fontSize: 13,
-    textDecoration: 'none',
+    padding: '7px 16px', borderRadius: 7, background: '#f4f6f4',
+    border: '1.5px solid #dde3dd', color: '#4a5a4a',
+    fontWeight: 600, fontSize: 13, textDecoration: 'none',
   },
   logoutBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '4px 4px',
-    borderRadius: 7,
-    background: '#fff',
-    border: '1.5px solid #dde3dd',
-    color: '#7a8a7a',
-    fontWeight: 600,
-    fontSize: 13,
-    cursor: 'pointer',
+    display: 'flex', alignItems: 'center', padding: '7px 10px',
+    borderRadius: 7, background: '#fff', border: '1.5px solid #dde3dd',
+    color: '#7a8a7a', cursor: 'pointer',
   },
-  heroBanner: {
-    background: '#004d29',
-    padding: '28px 0',
-  },
-  heroContent: {
-    maxWidth: 1000,
-    margin: '0 auto',
-    padding: '0 32px',
-  },
-  heroTitle: {
-    fontSize: 26,
-    fontWeight: 800,
-    color: '#fff',
-    marginBottom: 6,
-  },
-  heroSub: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.75)',
-  },
+  heroBanner: { background: '#004d29', padding: '28px 0' },
+  heroContent: { maxWidth: 1000, margin: '0 auto', padding: '0 32px' },
+  heroTitle: { fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 6 },
+  heroSub: { fontSize: 14, color: 'rgba(255,255,255,0.75)' },
   main: {
-    flex: 1,
-    padding: '36px 24px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    maxWidth: 1000,
-    margin: '0 auto',
-    width: '100%',
-    boxSizing: 'border-box',
+    flex: 1, padding: '36px 24px',
+    display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+    maxWidth: 1000, margin: '0 auto', width: '100%', boxSizing: 'border-box',
   },
-  footer: {
-    background: '#fff',
-    borderTop: '1.5px solid #dde3dd',
-  },
+  footer: { background: '#fff', borderTop: '1.5px solid #dde3dd' },
   footerInner: {
-    maxWidth: 1000,
-    margin: '0 auto',
-    padding: '16px 32px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 16,
+    maxWidth: 1000, margin: '0 auto', padding: '16px 32px',
+    display: 'flex', alignItems: 'center', gap: 16,
   },
-  footerBrand: {
-    fontSize: 13,
-    fontWeight: 800,
-    color: '#006838',
-  },
-  footerText: {
-    fontSize: 12,
-    color: '#9aaa9a',
-  },
+  footerBrand: { fontSize: 13, fontWeight: 800, color: '#006838' },
+  footerText: { fontSize: 12, color: '#9aaa9a' },
 }

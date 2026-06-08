@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
+import Icon from '../components/Icon'
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -30,10 +31,7 @@ export default function LoginPage() {
       <div style={s.leftPanel}>
         <div style={s.brandArea}>
           <div style={s.brandLogo}>
-            <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
-              <polyline points="2,18 7,18 10,9 13,27 16,13 19,22 22,18 34,18"
-                stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <Icon name="heartbeat" size={32} color="white" />
           </div>
           <div style={s.brandName}>MediCost</div>
         </div>

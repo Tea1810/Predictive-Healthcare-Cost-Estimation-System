@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Icon from '../components/Icon'
 
 type Stats = {
   total_reports: number
@@ -43,10 +44,7 @@ export default function DashboardPage() {
         <div style={s.headerInner}>
           <div style={s.brand}>
             <div style={s.brandLogo}>
-              <svg width="20" height="20" viewBox="0 0 36 36" fill="none">
-                <polyline points="2,18 7,18 10,9 13,27 16,13 19,22 22,18 34,18"
-                  stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <Icon name="heartbeat" size={20} color="white" />
             </div>
             <div>
               <div style={s.brandName}>MediCost</div>
