@@ -1,6 +1,7 @@
 import type { CSSProperties, FormEvent } from 'react'
 import { FIELDS } from '../constants'
 import type { Form, Setter } from '../types'
+import { C } from '../../../shared/styles/tokens'
 
 interface PatientFormProps {
   form: Form
@@ -128,16 +129,16 @@ const s: Record<string, CSSProperties> = {
   sectionTitle: {
     fontSize: 13,
     fontWeight: 800,
-    color: '#0f1511',
+    color: C.ink,
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
   },
   optionalTag: {
     fontSize: 11,
     fontWeight: 700,
-    color: '#059669',
-    background: '#ecfdf5',
-    border: '1px solid #a7f3d0',
+    color: '#1B5E37',
+    background: '#D2F1DA',
+    border: '1px solid #BFE6CB',
     padding: '3px 10px',
     borderRadius: 999,
   },
@@ -154,8 +155,8 @@ const s: Record<string, CSSProperties> = {
     fontSize: 13,
     fontWeight: 800,
     color: '#fff',
-    background: 'linear-gradient(135deg, #10b981, #059669)',
-    boxShadow: '0 3px 10px rgba(16,185,129,0.35)',
+    background: '#13261B',
+    boxShadow: '0 3px 10px rgba(19,38,27,0.35)',
     padding: '4px 12px',
     borderRadius: 999,
     fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -189,7 +190,7 @@ const s: Record<string, CSSProperties> = {
     fontSize: 14,
     outline: 'none',
     width: '100%',
-    color: '#0f1511',
+    color: C.ink,
     boxSizing: 'border-box',
   },
   selectWrap: {
@@ -206,7 +207,7 @@ const s: Record<string, CSSProperties> = {
     outline: 'none',
     width: '100%',
     cursor: 'pointer',
-    color: '#0f1511',
+    color: C.ink,
     appearance: 'none',
     WebkitAppearance: 'none',
   },
@@ -221,14 +222,14 @@ const s: Record<string, CSSProperties> = {
   btn: {
     width: '100%',
     padding: '15px',
-    background: 'linear-gradient(135deg, #10b981, #059669)',
+    background: '#2A8049',
     color: '#fff',
     border: 'none',
     borderRadius: 12,
     fontSize: 16,
     fontWeight: 700,
     cursor: 'pointer',
-    boxShadow: '0 8px 20px -6px rgba(16,185,129,0.50)',
+    boxShadow: '0 8px 20px -6px rgba(42,128,73,0.50)',
     letterSpacing: '0.1px',
     fontFamily: "'Plus Jakarta Sans', sans-serif",
   },

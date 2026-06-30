@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { useAuth } from '../AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
 import Icon from '../../../shared/ui/Icon'
+import { C } from '../../../shared/styles/tokens'
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -30,8 +31,6 @@ export default function LoginPage() {
   return (
     <div style={s.page}>
       <div style={s.leftPanel}>
-        <div style={s.panelGlow} />
-        <div style={s.panelGlow2} />
         <div style={s.brandArea}>
           <div style={s.brandLogo}>
             <Icon name="heartbeat" size={32} color="white" />
@@ -120,7 +119,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   leftPanel: {
     width: '45%',
-    background: 'linear-gradient(150deg, #0f1511 0%, #14241c 55%, #0a2c1e 100%)',
+    background: '#13261B',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -128,16 +127,6 @@ const s: Record<string, React.CSSProperties> = {
     color: '#fff',
     position: 'relative' as const,
     overflow: 'hidden',
-  },
-  panelGlow: {
-    position: 'absolute', top: -120, right: -100, width: 420, height: 420,
-    background: 'radial-gradient(circle, rgba(16,185,129,0.28), transparent 65%)',
-    pointerEvents: 'none',
-  },
-  panelGlow2: {
-    position: 'absolute', bottom: -140, left: -120, width: 380, height: 380,
-    background: 'radial-gradient(circle, rgba(52,211,153,0.14), transparent 65%)',
-    pointerEvents: 'none',
   },
   brandArea: {
     position: 'relative' as const,
@@ -150,8 +139,8 @@ const s: Record<string, React.CSSProperties> = {
     width: 52,
     height: 52,
     borderRadius: 14,
-    background: 'linear-gradient(135deg, #10b981, #059669)',
-    boxShadow: '0 8px 22px rgba(16,185,129,0.45)',
+    background: '#2A8049',
+    boxShadow: '0 8px 22px rgba(42,128,73,0.45)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -198,13 +187,13 @@ const s: Record<string, React.CSSProperties> = {
     width: 22,
     height: 22,
     borderRadius: '50%',
-    background: 'rgba(16,185,129,0.16)',
-    border: '1px solid rgba(16,185,129,0.45)',
+    background: 'rgba(42,128,73,0.16)',
+    border: '1px solid rgba(42,128,73,0.45)',
     flexShrink: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#6ee7b7',
+    color: '#74CE86',
     fontSize: 11,
     fontWeight: 800,
   },
@@ -227,7 +216,7 @@ const s: Record<string, React.CSSProperties> = {
   formTitle: {
     fontSize: 28,
     fontWeight: 800,
-    color: '#0f1511',
+    color: C.ink,
     marginBottom: 6,
     fontFamily: "'Plus Jakarta Sans', sans-serif",
     letterSpacing: '-0.02em',
@@ -257,7 +246,7 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: 10,
     border: '1.5px solid #e3e8e4',
     fontSize: 14,
-    color: '#0f1511',
+    color: C.ink,
     background: '#f6f8f6',
     width: '100%',
   },
@@ -265,7 +254,7 @@ const s: Record<string, React.CSSProperties> = {
     marginTop: 6,
     padding: '14px',
     borderRadius: 12,
-    background: 'linear-gradient(135deg, #10b981, #059669)',
+    background: '#2A8049',
     color: '#fff',
     fontWeight: 700,
     fontSize: 15,
@@ -273,7 +262,7 @@ const s: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     width: '100%',
     letterSpacing: '0.1px',
-    boxShadow: '0 8px 20px -6px rgba(16,185,129,0.50)',
+    boxShadow: '0 8px 20px -6px rgba(42,128,73,0.50)',
     fontFamily: "'Plus Jakarta Sans', sans-serif",
   },
   error: {
@@ -291,7 +280,7 @@ const s: Record<string, React.CSSProperties> = {
     textAlign: 'center' as const,
   },
   link: {
-    color: '#059669',
+    color: C.navy,
     fontWeight: 700,
     textDecoration: 'none',
   },

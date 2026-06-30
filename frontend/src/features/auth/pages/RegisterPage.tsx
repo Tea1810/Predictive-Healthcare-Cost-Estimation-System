@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { useAuth } from '../AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
 import Icon from '../../../shared/ui/Icon'
+import { C } from '../../../shared/styles/tokens'
 
 export default function RegisterPage() {
   const { register } = useAuth()
@@ -118,8 +119,8 @@ const s: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
   },
   topBar: {
-    background: 'linear-gradient(135deg, #0f1511 0%, #14241c 60%, #0a2c1e 100%)',
-    borderBottom: '1px solid rgba(16,185,129,0.16)',
+    background: '#13261B',
+    borderBottom: '1px solid rgba(42,128,73,0.16)',
     padding: '18px 40px',
     display: 'flex',
     alignItems: 'center',
@@ -134,8 +135,8 @@ const s: Record<string, React.CSSProperties> = {
     width: 40,
     height: 40,
     borderRadius: 11,
-    background: 'linear-gradient(135deg, #10b981, #059669)',
-    boxShadow: '0 6px 16px rgba(16,185,129,0.40)',
+    background: '#2A8049',
+    boxShadow: '0 6px 16px rgba(42,128,73,0.40)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -181,7 +182,7 @@ const s: Record<string, React.CSSProperties> = {
   formTitle: {
     fontSize: 28,
     fontWeight: 800,
-    color: '#0f1511',
+    color: C.ink,
     marginBottom: 6,
     fontFamily: "'Plus Jakarta Sans', sans-serif",
     letterSpacing: '-0.02em',
@@ -215,7 +216,7 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: 10,
     border: '1.5px solid #e3e8e4',
     fontSize: 14,
-    color: '#0f1511',
+    color: C.ink,
     background: '#f6f8f6',
     width: '100%',
   },
@@ -223,14 +224,14 @@ const s: Record<string, React.CSSProperties> = {
     marginTop: 4,
     padding: '14px',
     borderRadius: 12,
-    background: 'linear-gradient(135deg, #10b981, #059669)',
+    background: '#2A8049',
     color: '#fff',
     fontWeight: 700,
     fontSize: 15,
     border: 'none',
     cursor: 'pointer',
     width: '100%',
-    boxShadow: '0 8px 20px -6px rgba(16,185,129,0.50)',
+    boxShadow: '0 8px 20px -6px rgba(42,128,73,0.50)',
     fontFamily: "'Plus Jakarta Sans', sans-serif",
   },
   error: {
@@ -248,7 +249,7 @@ const s: Record<string, React.CSSProperties> = {
     textAlign: 'center' as const,
   },
   footerLink: {
-    color: '#059669',
+    color: C.navy,
     fontWeight: 600,
     cursor: 'pointer',
   },

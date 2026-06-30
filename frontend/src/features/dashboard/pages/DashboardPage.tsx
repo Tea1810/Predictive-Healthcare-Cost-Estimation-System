@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useAuth } from '../../auth/AuthContext'
+import Sidebar from '../../../shared/ui/Sidebar'
 import { C, TIER } from '../../../shared/styles/tokens'
 import { usd, usdCompact, count, pct1 } from '../../../shared/styles/format'
 import { getDashboardStats } from '../api'
@@ -8,6 +10,7 @@ const basisLabel = (b: Stats['cost_basis']) => b.charAt(0).toUpperCase() + b.sli
 
 
 export default function DashboardPage() {
+  const { logout } = useAuth()
   const [stats, setStats] = useState<Stats | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
@@ -30,7 +33,7 @@ export default function DashboardPage() {
 
   return (
     <div style={s.shell}>
-      <Sidebar />
+      <Sidebar subtitle="Analytics" onSignOut={logout} />
       <div style={s.body}>
         <Topbar lastUpdated={lastUpdated} loading={loading} onRefresh={load} />
         <main style={s.main}>
@@ -103,41 +106,6 @@ function DashboardContent({ stats }: { stats: Stats }) {
 
 /* ----------------------------- Layout chrome ----------------------------- */
 
-const NAV = [
-  { key: 'overview', label: 'Overview', href: '/dashboard', svg: NavGrid, active: true },
-  { key: 'estimator', label: 'Estimator', href: '/estimator', svg: NavPulse },
-  { key: 'reports', label: 'Reports', href: '/dashboard', svg: NavDoc },
-  { key: 'patients', label: 'Patients', href: '/dashboard', svg: NavUsers },
-  { key: 'settings', label: 'Settings', href: '/dashboard', svg: NavGear },
-]
-
-function Sidebar() {
-  return (
-    <aside style={s.sidebar} className="mc-dash-sidebar">
-      <div style={s.sideBrand}>
-        <div style={s.sideLogo}>M</div>
-        <div className="mc-collapse">
-          <div style={s.sideName}>MediCost</div>
-          <div style={s.sideSub}>Analytics</div>
-        </div>
-      </div>
-
-      <nav style={s.nav}>
-        {NAV.map((item) => {
-          const Svg = item.svg
-          return (
-            <a key={item.key} href={item.href} className="mc-nav-dark"
-               style={{ ...s.navItem, ...(item.active ? s.navItemActive : {}) }}>
-              <Svg color={item.active ? '#fff' : C.sidebarText} />
-              <span className="mc-collapse">{item.label}</span>
-            </a>
-          )
-        })}
-      </nav>
-    </aside>
-  )
-}
-
 function Topbar({ lastUpdated, loading, onRefresh }: {
   lastUpdated: Date | null; loading: boolean; onRefresh: () => void
 }) {
@@ -165,7 +133,7 @@ function Topbar({ lastUpdated, loading, onRefresh }: {
 function CostExposureCard({ total, momPct, basis }: {
   total: number; momPct: number | null; basis: string
 }) {
-  // Rising predicted cost is unfavourable for finance -> orange warning tone.
+  // Rising predicted cost is unfavourable for finance -> red warning tone.
   const up = (momPct ?? 0) >= 0
   return (
     <div style={s.heroCard}>
@@ -173,7 +141,7 @@ function CostExposureCard({ total, momPct, basis }: {
       <div style={s.heroValue}>{usdCompact(total)}</div>
       <div style={s.heroFootRow}>
         {momPct !== null ? (
-          <span style={{ ...s.momChip, background: up ? 'rgba(239,159,39,0.22)' : 'rgba(133,183,235,0.22)', color: up ? C.orange : C.steel }}>
+          <span style={{ ...s.momChip, background: up ? 'rgba(229,72,77,0.16)' : 'rgba(42,128,73,0.16)', color: up ? C.red : C.navy }}>
             {up ? '▲' : '▼'} {pct1(Math.abs(momPct))} MoM
           </span>
         ) : (
@@ -354,21 +322,11 @@ function WeeklyArea({ thisMonth, lastMonth }: {
   return (
     <div>
       <svg width="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ display: 'block' }}>
-        <defs>
-          <linearGradient id="area-this" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={C.navy} stopOpacity={0.28} />
-            <stop offset="100%" stopColor={C.navy} stopOpacity={0.02} />
-          </linearGradient>
-          <linearGradient id="area-last" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={C.orange} stopOpacity={0.26} />
-            <stop offset="100%" stopColor={C.orange} stopOpacity={0.02} />
-          </linearGradient>
-        </defs>
         {/* last month behind */}
-        <path d={last.area} fill="url(#area-last)" />
+        <path d={last.area} fill={C.orange} fillOpacity={0.14} />
         <path d={last.line} fill="none" stroke={C.orange} strokeWidth={2.5} strokeLinejoin="round" />
         {/* this month in front */}
-        <path d={cur.area} fill="url(#area-this)" />
+        <path d={cur.area} fill={C.navy} fillOpacity={0.14} />
         <path d={cur.line} fill="none" stroke={C.navy} strokeWidth={2.5} strokeLinejoin="round" />
         {weeks.map((wk) => (
           <text key={wk} x={x(wk)} y={h - 8} textAnchor="middle" style={{ fontSize: 11, fill: C.muted }}>W{wk}</text>
@@ -420,43 +378,10 @@ function Legend({ items }: { items: { label: string; color: string }[] }) {
   )
 }
 
-/* ------------------------------ Nav icons -------------------------------- */
-
-function svgWrap(children: React.ReactNode, color: string) {
-  return (
-    <svg width={19} height={19} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">{children}</svg>
-  )
-}
-function NavGrid({ color }: { color: string }) { return svgWrap(<><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></>, color) }
-function NavPulse({ color }: { color: string }) { return svgWrap(<path d="M3 12h4l2 6 4-14 2 8h6" />, color) }
-function NavDoc({ color }: { color: string }) { return svgWrap(<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M8 13h8M8 17h8" /></>, color) }
-function NavUsers({ color }: { color: string }) { return svgWrap(<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>, color) }
-function NavGear({ color }: { color: string }) { return svgWrap(<><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></>, color) }
-
 /* -------------------------------- Styles --------------------------------- */
 
 const s: Record<string, React.CSSProperties> = {
-  shell: { minHeight: '100vh', display: 'flex', background: '#f3f6fb' },
-
-  sidebar: {
-    width: 220, flexShrink: 0, background: C.navy,
-    display: 'flex', flexDirection: 'column', padding: '24px 16px',
-    position: 'sticky', top: 0, height: '100vh',
-  },
-  sideBrand: { display: 'flex', alignItems: 'center', gap: 12, padding: '0 6px 24px' },
-  sideLogo: {
-    width: 40, height: 40, borderRadius: '50%', background: C.navyActive, color: '#fff',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontWeight: 700, fontSize: 18, fontFamily: "'Plus Jakarta Sans', sans-serif", flexShrink: 0,
-  },
-  sideName: { fontSize: 16, fontWeight: 600, color: '#fff', fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.02em' },
-  sideSub: { fontSize: 12, color: C.sidebarText },
-  nav: { display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 },
-  navItem: {
-    display: 'flex', alignItems: 'center', gap: 12, padding: '11px 12px', borderRadius: 10,
-    color: C.sidebarText, textDecoration: 'none', fontSize: 14, fontWeight: 500,
-  },
-  navItemActive: { background: C.navyActive, color: '#fff' },
+  shell: { minHeight: '100vh', display: 'flex', background: C.pageBg },
 
   body: { flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 },
   topbar: {
@@ -477,7 +402,7 @@ const s: Record<string, React.CSSProperties> = {
 
   /* KPI cards */
   heroCard: {
-    background: C.navy, borderRadius: 16, padding: 20, color: '#fff',
+    background: C.dark, borderRadius: 16, padding: 20, color: '#fff',
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
   },
   heroLabel: { fontSize: 13, color: C.sidebarText, fontWeight: 500 },
@@ -485,7 +410,7 @@ const s: Record<string, React.CSSProperties> = {
   heroFootRow: { display: 'flex', flexDirection: 'column', gap: 6, marginTop: 14 },
   momChip: { alignSelf: 'flex-start', fontSize: 12.5, fontWeight: 600, padding: '3px 9px', borderRadius: 999 },
   heroNoTrend: { fontSize: 12, color: C.sidebarText },
-  heroBasis: { fontSize: 11.5, color: 'rgba(181,212,244,0.85)' },
+  heroBasis: { fontSize: 11.5, color: 'rgba(210,241,218,0.70)' },
 
   kpiCard: {
     background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, padding: 20,
@@ -526,6 +451,6 @@ const s: Record<string, React.CSSProperties> = {
   },
 
   loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '80px 0', color: C.muted, fontSize: 15 },
-  loadingDot: { width: 16, height: 16, borderRadius: '50%', border: '3px solid #cfdcec', borderTopColor: C.navy, animation: 'mc_spin 0.75s linear infinite' },
+  loadingDot: { width: 16, height: 16, borderRadius: '50%', border: '3px solid #D2F1DA', borderTopColor: C.navy, animation: 'mc_spin 0.75s linear infinite' },
   errorBox: { background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '14px 18px', color: '#b91c1c', fontSize: 14, marginBottom: 18 },
 }

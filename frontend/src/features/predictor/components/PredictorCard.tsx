@@ -61,7 +61,6 @@ export default function PredictorCard({
   return (
     <div style={s.card}>
       <div style={s.cardHeader}>
-        <div style={s.cardHeaderGlow} />
         <div style={s.cardHeaderLeft}>
           <div style={s.headerIcon}>
             <Icon name="user" size={18} color="white" />
@@ -130,7 +129,6 @@ export default function PredictorCard({
       {result !== null && (
         <div style={s.resultSection} className="mc-fade-up">
           <div style={s.resultCard}>
-            <div style={s.resultGlow} />
             <div style={s.resultBadge}>Estimated Annual Cost</div>
             <div style={s.resultValue}>
               ${result.estimated_annual_cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -160,12 +158,12 @@ const s: Record<string, CSSProperties> = {
     boxShadow: '0 24px 48px -16px rgba(15,21,17,0.22), 0 8px 18px -10px rgba(15,21,17,0.12)',
     border: '1px solid #eef1ef',
     width: '100%',
-    maxWidth: 860,
+    maxWidth: 960,
     overflow: 'hidden',
   },
   cardHeader: {
     position: 'relative',
-    background: 'linear-gradient(135deg, #0f1511 0%, #15241c 60%, #0a2c1e 100%)',
+    background: '#13261B',
     padding: '22px 28px',
     display: 'flex',
     alignItems: 'center',
@@ -173,11 +171,6 @@ const s: Record<string, CSSProperties> = {
     gap: 16,
     flexWrap: 'wrap',
     overflow: 'hidden',
-  },
-  cardHeaderGlow: {
-    position: 'absolute', top: -90, right: -40, width: 260, height: 260,
-    background: 'radial-gradient(circle, rgba(16,185,129,0.30), transparent 65%)',
-    pointerEvents: 'none',
   },
   cardHeaderLeft: {
     position: 'relative',
@@ -187,8 +180,8 @@ const s: Record<string, CSSProperties> = {
   },
   headerIcon: {
     width: 42, height: 42, borderRadius: 12,
-    background: 'linear-gradient(135deg, #10b981, #059669)',
-    boxShadow: '0 6px 16px rgba(16,185,129,0.40)',
+    background: '#2A8049',
+    boxShadow: '0 6px 16px rgba(42,128,73,0.40)',
     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
   cardTitle: { fontSize: 18, fontWeight: 800, color: '#fff', marginBottom: 2, fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.02em' },
@@ -216,9 +209,9 @@ const s: Record<string, CSSProperties> = {
   },
   navBtn: {
     width: 34, height: 34, borderRadius: 9,
-    background: 'rgba(16,185,129,0.18)',
-    border: '1px solid rgba(16,185,129,0.40)',
-    color: '#6ee7b7', fontSize: 16, fontWeight: 700,
+    background: 'rgba(42,128,73,0.18)',
+    border: '1px solid rgba(42,128,73,0.40)',
+    color: '#74CE86', fontSize: 16, fontWeight: 700,
     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   navBtnHidden: {
@@ -239,30 +232,24 @@ const s: Record<string, CSSProperties> = {
   },
   spinner: {
     width: 22, height: 22, borderRadius: '50%',
-    border: '3px solid #a7f3d0', borderTopColor: '#059669', flexShrink: 0,
+    border: '3px solid #BFE6CB', borderTopColor: '#1B5E37', flexShrink: 0,
   },
-  loadingTitle: { fontSize: 14, color: '#047857', fontWeight: 700 },
-  loadingText: { fontSize: 12, color: '#059669', marginTop: 2 },
+  loadingTitle: { fontSize: 14, color: '#1B5E37', fontWeight: 700 },
+  loadingText: { fontSize: 12, color: '#2A8049', marginTop: 2 },
   resultSection: { margin: '0 32px 28px' },
   resultCard: {
     position: 'relative',
-    background: 'linear-gradient(135deg, #0f1511 0%, #103024 100%)',
-    border: '1px solid rgba(16,185,129,0.30)',
-    boxShadow: '0 16px 36px -14px rgba(16,185,129,0.30)',
+    background: '#13261B',
+    border: '1px solid rgba(42,128,73,0.30)',
+    boxShadow: '0 16px 36px -14px rgba(42,128,73,0.30)',
     borderRadius: 16, padding: '30px 28px', textAlign: 'center', marginBottom: 14,
     overflow: 'hidden',
-  },
-  resultGlow: {
-    position: 'absolute', bottom: -110, left: '50%', transform: 'translateX(-50%)',
-    width: 320, height: 220,
-    background: 'radial-gradient(circle, rgba(16,185,129,0.30), transparent 68%)',
-    pointerEvents: 'none',
   },
   resultBadge: {
     position: 'relative',
     display: 'inline-block',
-    background: 'rgba(16,185,129,0.16)', color: '#6ee7b7',
-    border: '1px solid rgba(16,185,129,0.35)',
+    background: 'rgba(42,128,73,0.18)', color: '#74CE86',
+    border: '1px solid rgba(42,128,73,0.35)',
     fontSize: 11, fontWeight: 700, padding: '5px 14px', borderRadius: 999,
     textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16,
   },
@@ -270,8 +257,7 @@ const s: Record<string, CSSProperties> = {
     position: 'relative',
     fontSize: 48, fontWeight: 800, lineHeight: 1, marginBottom: 10,
     fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.03em',
-    background: 'linear-gradient(135deg, #ffffff, #6ee7b7)',
-    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+    color: '#fff',
   },
   resultNote: { position: 'relative', fontSize: 13, color: 'rgba(255,255,255,0.55)' },
   downloadBtn: {

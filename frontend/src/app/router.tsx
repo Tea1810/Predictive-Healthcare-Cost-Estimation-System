@@ -4,6 +4,7 @@ import LoginPage from '../features/auth/pages/LoginPage'
 import RegisterPage from '../features/auth/pages/RegisterPage'
 import DashboardPage from '../features/dashboard/pages/DashboardPage'
 import PredictorPage from '../features/predictor/pages/PredictorPage'
+import ReportsPage from '../features/reports/pages/ReportsPage'
 
 export function AppRoutes() {
   return (
@@ -23,6 +24,14 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <PredictorPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <ReportsPage />
           </ProtectedRoute>
         }
       />
