@@ -29,6 +29,8 @@ export default function LoginPage() {
   return (
     <div style={s.page}>
       <div style={s.leftPanel}>
+        <div style={s.panelGlow} />
+        <div style={s.panelGlow2} />
         <div style={s.brandArea}>
           <div style={s.brandLogo}>
             <Icon name="heartbeat" size={32} color="white" />
@@ -42,7 +44,7 @@ export default function LoginPage() {
         <div style={s.featureList}>
           {['Instant cost predictions', 'Detailed patient reports', 'Risk profile analysis', 'Aggregate analytics'].map(f => (
             <div key={f} style={s.featureItem}>
-              <span style={s.featureDot} />
+              <span style={s.featureDot}>&#10003;</span>
               {f}
             </div>
           ))}
@@ -50,7 +52,7 @@ export default function LoginPage() {
       </div>
 
       <div style={s.rightPanel}>
-        <div style={s.formCard}>
+        <div style={s.formCard} className="mc-fade-up">
           <h2 style={s.formTitle}>Sign In</h2>
           <p style={s.formSub}>Access your account to continue</p>
 
@@ -59,6 +61,7 @@ export default function LoginPage() {
               <label style={s.label}>Email Address</label>
               <input
                 style={s.input}
+                className="mc-input"
                 type="email"
                 placeholder="your@email.com"
                 value={email}
@@ -71,6 +74,7 @@ export default function LoginPage() {
               <label style={s.label}>Password</label>
               <input
                 style={s.input}
+                className="mc-input"
                 type="password"
                 placeholder="Enter your password"
                 value={password}
@@ -80,14 +84,14 @@ export default function LoginPage() {
               />
             </div>
             {error && <div style={s.error}>{error}</div>}
-            <button style={s.btn} type="submit" disabled={loading}>
+            <button style={s.btn} className="mc-btn" type="submit" disabled={loading}>
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
 
           <p style={s.switchLink}>
             Don't have an account?{' '}
-            <Link to="/register" style={s.link}>Create one</Link>
+            <Link to="/register" style={s.link} className="mc-link">Create one</Link>
           </p>
         </div>
       </div>
@@ -115,71 +119,93 @@ const s: Record<string, React.CSSProperties> = {
   },
   leftPanel: {
     width: '45%',
-    background: '#004d29',
+    background: 'linear-gradient(150deg, #0f1511 0%, #14241c 55%, #0a2c1e 100%)',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    padding: '60px 52px',
+    padding: '60px 56px',
     color: '#fff',
     position: 'relative' as const,
     overflow: 'hidden',
   },
+  panelGlow: {
+    position: 'absolute', top: -120, right: -100, width: 420, height: 420,
+    background: 'radial-gradient(circle, rgba(16,185,129,0.28), transparent 65%)',
+    pointerEvents: 'none',
+  },
+  panelGlow2: {
+    position: 'absolute', bottom: -140, left: -120, width: 380, height: 380,
+    background: 'radial-gradient(circle, rgba(52,211,153,0.14), transparent 65%)',
+    pointerEvents: 'none',
+  },
   brandArea: {
+    position: 'relative' as const,
     display: 'flex',
     alignItems: 'center',
     gap: 12,
     marginBottom: 64,
   },
   brandLogo: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    background: 'rgba(255,255,255,0.15)',
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    background: 'linear-gradient(135deg, #10b981, #059669)',
+    boxShadow: '0 8px 22px rgba(16,185,129,0.45)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    border: '1.5px solid rgba(255,255,255,0.25)',
   },
   brandName: {
-    fontSize: 22,
+    fontSize: 23,
     fontWeight: 800,
-    letterSpacing: '-0.3px',
+    letterSpacing: '-0.02em',
     color: '#fff',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
   },
   heroText: {
-    marginBottom: 40,
+    position: 'relative' as const,
+    marginBottom: 44,
   },
   heroTitle: {
-    fontSize: 32,
-    fontWeight: 700,
-    lineHeight: 1.25,
-    marginBottom: 16,
+    fontSize: 36,
+    fontWeight: 800,
+    lineHeight: 1.18,
+    marginBottom: 18,
     color: '#fff',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    letterSpacing: '-0.03em',
   },
   heroSub: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.75)',
-    lineHeight: 1.6,
+    color: 'rgba(255,255,255,0.66)',
+    lineHeight: 1.65,
   },
   featureList: {
+    position: 'relative' as const,
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: 14,
+    gap: 16,
   },
   featureItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: 12,
+    gap: 13,
     fontSize: 15,
-    color: 'rgba(255,255,255,0.85)',
+    color: 'rgba(255,255,255,0.82)',
   },
   featureDot: {
-    width: 8,
-    height: 8,
+    width: 22,
+    height: 22,
     borderRadius: '50%',
-    background: '#00e676',
+    background: 'rgba(16,185,129,0.16)',
+    border: '1px solid rgba(16,185,129,0.45)',
     flexShrink: 0,
-    display: 'block',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#6ee7b7',
+    fontSize: 11,
+    fontWeight: 800,
   },
   rightPanel: {
     flex: 1,
@@ -187,25 +213,27 @@ const s: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '40px 24px',
-    background: '#f4f6f4',
   },
   formCard: {
     background: '#fff',
-    borderRadius: 16,
-    boxShadow: '0 4px 24px rgba(0,60,30,0.10)',
+    borderRadius: 20,
+    boxShadow: '0 24px 48px -16px rgba(15,21,17,0.22), 0 8px 18px -10px rgba(15,21,17,0.10)',
+    border: '1px solid #eef1ef',
     padding: '48px 44px',
     width: '100%',
     maxWidth: 420,
   },
   formTitle: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 800,
-    color: '#1a1f1a',
+    color: '#0f1511',
     marginBottom: 6,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    letterSpacing: '-0.02em',
   },
   formSub: {
     fontSize: 14,
-    color: '#7a8a7a',
+    color: '#8a958c',
     marginBottom: 32,
   },
   form: {
@@ -216,28 +244,27 @@ const s: Record<string, React.CSSProperties> = {
   fieldGroup: {
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: 6,
+    gap: 7,
   },
   label: {
     fontSize: 13,
     fontWeight: 600,
-    color: '#4a5a4a',
+    color: '#475247',
   },
   input: {
-    padding: '11px 14px',
-    borderRadius: 8,
-    border: '1.5px solid #dde3dd',
+    padding: '12px 14px',
+    borderRadius: 10,
+    border: '1.5px solid #e3e8e4',
     fontSize: 14,
-    color: '#1a1f1a',
-    background: '#fff',
+    color: '#0f1511',
+    background: '#f6f8f6',
     width: '100%',
-    transition: 'border-color 0.15s',
   },
   btn: {
     marginTop: 6,
-    padding: '13px',
-    borderRadius: 8,
-    background: '#006838',
+    padding: '14px',
+    borderRadius: 12,
+    background: 'linear-gradient(135deg, #10b981, #059669)',
     color: '#fff',
     fontWeight: 700,
     fontSize: 15,
@@ -245,25 +272,26 @@ const s: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     width: '100%',
     letterSpacing: '0.1px',
-    transition: 'background 0.15s',
+    boxShadow: '0 8px 20px -6px rgba(16,185,129,0.50)',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
   },
   error: {
-    background: '#fff5f5',
-    border: '1px solid #fcbcbc',
-    borderRadius: 8,
-    padding: '10px 14px',
-    color: '#c53030',
+    background: '#fef2f2',
+    border: '1px solid #fecaca',
+    borderRadius: 10,
+    padding: '11px 14px',
+    color: '#b91c1c',
     fontSize: 13,
   },
   switchLink: {
     marginTop: 24,
     fontSize: 13,
-    color: '#7a8a7a',
+    color: '#8a958c',
     textAlign: 'center' as const,
   },
   link: {
-    color: '#006838',
-    fontWeight: 600,
+    color: '#059669',
+    fontWeight: 700,
     textDecoration: 'none',
   },
 }

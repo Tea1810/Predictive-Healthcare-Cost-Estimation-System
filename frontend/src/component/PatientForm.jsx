@@ -11,7 +11,7 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
             <span style={s.sliderBadge}>{form.age} years</span>
           </div>
           <input
-            style={s.range}
+            className="mc-range"
             type="range"
             min={0}
             max={120}
@@ -28,7 +28,7 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
           <div style={s.field}>
             <label style={s.label}>Gender</label>
             <div style={s.selectWrap}>
-              <select style={s.select} value={form.gender} onChange={set('gender')} required>
+              <select style={s.select} className="mc-input" value={form.gender} onChange={set('gender')} required>
                 <option value="0">Male</option>
                 <option value="1">Female</option>
               </select>
@@ -39,7 +39,7 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
           <div style={s.field}>
             <label style={s.label}>Smoking Status</label>
             <div style={s.selectWrap}>
-              <select style={s.select} value={form.is_smoker} onChange={set('is_smoker')} required>
+              <select style={s.select} className="mc-input" value={form.is_smoker} onChange={set('is_smoker')} required>
                 <option value="0">Non-smoker</option>
                 <option value="1">Smoker</option>
               </select>
@@ -54,7 +54,7 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
             <span style={s.sliderBadge}>{form.num_diseases}</span>
           </div>
           <input
-            style={s.range}
+            className="mc-range"
             type="range"
             min={0}
             max={50}
@@ -82,6 +82,7 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
               </label>
               <input
                 style={s.input}
+                className="mc-input"
                 type="number"
                 step={step}
                 placeholder={placeholder}
@@ -96,6 +97,7 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
       <button
         type="submit"
         style={{ ...s.btn, ...(loading ? s.btnDisabled : {}) }}
+        className="mc-btn"
         disabled={loading}
       >
         {loading ? 'Estimating…' : 'Estimate Cost'}
@@ -110,78 +112,75 @@ const s = {
     display: 'flex',
     alignItems: 'center',
     gap: 10,
-    marginBottom: 16,
-    paddingBottom: 10,
-    borderBottom: '1.5px solid #edf2ed',
+    marginBottom: 18,
+    paddingBottom: 12,
+    borderBottom: '1px solid #eef1ef',
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: 700,
-    color: '#1a1f1a',
+    fontSize: 13,
+    fontWeight: 800,
+    color: '#0f1511',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
   },
   optionalTag: {
     fontSize: 11,
-    fontWeight: 600,
-    color: '#006838',
-    background: '#e8f5ee',
-    border: '1px solid #b2dfc4',
-    padding: '2px 9px',
-    borderRadius: 12,
+    fontWeight: 700,
+    color: '#059669',
+    background: '#ecfdf5',
+    border: '1px solid #a7f3d0',
+    padding: '3px 10px',
+    borderRadius: 999,
   },
   sliderRow: {
-    marginBottom: 22,
+    marginBottom: 24,
   },
   sliderHeader: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   sliderBadge: {
     fontSize: 13,
-    fontWeight: 700,
-    color: '#006838',
-    background: '#e8f5ee',
-    border: '1px solid #b2dfc4',
-    padding: '2px 10px',
-    borderRadius: 12,
+    fontWeight: 800,
+    color: '#fff',
+    background: 'linear-gradient(135deg, #10b981, #059669)',
+    boxShadow: '0 3px 10px rgba(16,185,129,0.35)',
+    padding: '4px 12px',
+    borderRadius: 999,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
   },
   rangeEnds: {
     display: 'flex',
     justifyContent: 'space-between',
     fontSize: 11,
-    color: '#9aaa9a',
-    marginTop: 4,
+    color: '#aab4ac',
+    marginTop: 6,
   },
   grid2: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
     gap: '16px 24px',
-    marginBottom: 22,
+    marginBottom: 24,
   },
   grid3: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-    gap: '14px 20px',
+    gap: '16px 20px',
   },
-  field: { display: 'flex', flexDirection: 'column', gap: 6 },
-  label: { fontSize: 13, fontWeight: 600, color: '#4a5a4a' },
-  unit: { fontWeight: 400, color: '#9aaa9a', fontSize: 12 },
-  range: {
-    width: '100%',
-    accentColor: '#006838',
-    cursor: 'pointer',
-    height: 4,
-  },
+  field: { display: 'flex', flexDirection: 'column', gap: 7 },
+  label: { fontSize: 13, fontWeight: 600, color: '#475247' },
+  unit: { fontWeight: 400, color: '#aab4ac', fontSize: 12 },
   input: {
-    border: '1.5px solid #dde3dd',
-    background: '#fff',
-    borderRadius: 8,
-    padding: '10px 12px',
+    border: '1.5px solid #e3e8e4',
+    background: '#f6f8f6',
+    borderRadius: 10,
+    padding: '11px 13px',
     fontSize: 14,
     outline: 'none',
     width: '100%',
-    color: '#1a1f1a',
+    color: '#0f1511',
     boxSizing: 'border-box',
   },
   selectWrap: {
@@ -190,15 +189,15 @@ const s = {
     alignItems: 'center',
   },
   select: {
-    border: '1.5px solid #dde3dd',
-    background: '#fff',
-    borderRadius: 8,
-    padding: '10px 36px 10px 12px',
+    border: '1.5px solid #e3e8e4',
+    background: '#f6f8f6',
+    borderRadius: 10,
+    padding: '11px 36px 11px 13px',
     fontSize: 14,
     outline: 'none',
     width: '100%',
     cursor: 'pointer',
-    color: '#1a1f1a',
+    color: '#0f1511',
     appearance: 'none',
     WebkitAppearance: 'none',
   },
@@ -206,22 +205,23 @@ const s = {
     position: 'absolute',
     right: 12,
     fontSize: 18,
-    color: '#7a8a7a',
+    color: '#8a958c',
     pointerEvents: 'none',
     lineHeight: 1,
   },
   btn: {
     width: '100%',
-    padding: '14px',
-    background: '#006838',
+    padding: '15px',
+    background: 'linear-gradient(135deg, #10b981, #059669)',
     color: '#fff',
     border: 'none',
-    borderRadius: 10,
+    borderRadius: 12,
     fontSize: 16,
     fontWeight: 700,
     cursor: 'pointer',
-    transition: 'background 0.15s',
+    boxShadow: '0 8px 20px -6px rgba(16,185,129,0.50)',
     letterSpacing: '0.1px',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
   },
-  btnDisabled: { opacity: 0.6, cursor: 'not-allowed' },
+  btnDisabled: { opacity: 0.55, cursor: 'not-allowed', boxShadow: 'none' },
 }

@@ -1,30 +1,65 @@
 import { useEffect, useState } from 'react'
-import Icon from '../components/Icon'
+
+/* ----------------------------- Data contract ----------------------------- */
 
 type Stats = {
-  total_reports: number
-  reports_this_month: number
-  average_cost_this_month: number
+  cost_basis: 'predicted' | 'billed' | 'reimbursed'
+  cost_tiers: { low_max: number; high_min: number }
+  total_patients: number
+  total_predicted_cost: number
   average_cost: number
-  smoker_percentage: number
-  high_risk_threshold: number
-  high_risk_count: number
-  high_risk_percentage: number
-  age_groups: Record<string, number>
+  tier_counts: { low: number; med: number; high: number }
+  high_cost: { count: number; pct_patients: number; pct_cost: number }
+  top_decile_cost_share: number
+  cost_by_age: { band: string; avg_cost: number }[]
+  total_reports: number
+  mom_pct: number | null
+  tier_by_month: { month: string; label: string; low: number; med: number; high: number }[]
+  weekly_this_month: { week: number; cost: number }[]
+  weekly_last_month: { week: number; cost: number }[]
 }
 
 const API = '/api'
 
-function fmt(n: number) {
-  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+/* Navy + orange palette tokens (see rebuild spec). */
+const C = {
+  navy: '#0C447C',
+  navyActive: '#14538C',
+  orange: '#EF9F27',
+  steel: '#85B7EB',
+  track: '#E6F1FB',
+  sidebarText: '#B5D4F4',
+  ink: '#0f1828',
+  mid: '#48566a',
+  muted: '#8593a6',
+  border: '#e6ebf2',
+  surface: '#ffffff',
 }
+
+/* Cost-tier colours, shared across the tier bars, donut legend and KPIs. */
+const TIER = {
+  high: C.navy,
+  med: C.orange,
+  low: C.steel,
+}
+
+const usd = (n: number) =>
+  '$' + Math.round(n).toLocaleString('en-US')
+const usdCompact = (n: number) =>
+  '$' + n.toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 1 })
+const count = (n: number) => Math.round(n).toLocaleString('en-US')
+const pct1 = (n: number) => `${n.toFixed(1)}%`
+const basisLabel = (b: Stats['cost_basis']) => b.charAt(0).toUpperCase() + b.slice(1)
+
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [loading, setLoading] = useState(false)
 
   async function load() {
+    setLoading(true)
     try {
       const res = await fetch(`${API}/dashboard`)
       if (!res.ok) throw new Error(`Server error ${res.status}`)
@@ -33,274 +68,511 @@ export default function DashboardPage() {
       setError(null)
     } catch (e) {
       setError((e as Error).message)
+    } finally {
+      setLoading(false)
     }
   }
 
   useEffect(() => { load() }, [])
 
   return (
-    <div style={s.page}>
-      <header style={s.header}>
-        <div style={s.headerInner}>
-          <div style={s.brand}>
-            <div style={s.brandLogo}>
-              <Icon name="heartbeat" size={20} color="white" />
-            </div>
-            <div>
-              <div style={s.brandName}>MediCost</div>
-              <div style={s.brandSub}>Analytics Dashboard</div>
-            </div>
-          </div>
-          <div style={s.headerRight}>
-            {lastUpdated && (
-              <span style={s.updated}>Last updated: {lastUpdated.toLocaleTimeString()}</span>
-            )}
-            <a href="/" style={s.backBtn}>Go to Estimator</a>
-          </div>
-        </div>
-      </header>
+    <div style={s.shell}>
+      <Sidebar />
+      <div style={s.body}>
+        <Topbar lastUpdated={lastUpdated} loading={loading} onRefresh={load} />
+        <main style={s.main}>
+          {error && <div style={s.errorBox}>Could not load dashboard data: {error}</div>}
+          {!stats && !error && (
+            <div style={s.loading}><div style={s.loadingDot} /> Loading analytics…</div>
+          )}
+          {stats && <DashboardContent stats={stats} />}
+        </main>
+      </div>
+    </div>
+  )
+}
 
-      <div style={s.heroBand}>
-        <div style={s.heroInner}>
-          <h1 style={s.heroTitle}>Aggregate Analytics</h1>
-          <p style={s.heroSub}>Anonymised population-level statistics. No personal data is displayed.</p>
+function DashboardContent({ stats }: { stats: Stats }) {
+  const basis = basisLabel(stats.cost_basis)
+  return (
+    <div className="mc-fade-up">
+      {/* Row 1 — KPI cards */}
+      <div className="mc-dash-kpis">
+        <CostExposureCard
+          total={stats.total_predicted_cost}
+          momPct={stats.mom_pct}
+          basis={basis}
+        />
+        <KpiCard
+          label="Avg cost / patient"
+          value={usd(stats.average_cost)}
+          foot={`${basis} basis`}
+        />
+        <KpiCard
+          label="Patients assessed"
+          value={count(stats.total_patients)}
+          foot={`across ${count(stats.total_reports)} reports`}
+        />
+        <HighCostCard high={stats.high_cost} highMin={stats.cost_tiers.high_min} />
+      </div>
+
+      {/* Row 2 — cost-tier bars (2fr) + cost concentration donut (1fr) */}
+      <div className="mc-dash-row">
+        <Card
+          title="Patients by cost tier"
+          subtitle={`Monthly counts · cost tiers from $${count(stats.cost_tiers.low_max)} / $${count(stats.cost_tiers.high_min)} thresholds`}
+        >
+          <TierByMonth data={stats.tier_by_month} />
+        </Card>
+        <Card title="Cost concentration" subtitle="Top 10% of patients by cost">
+          <ConcentrationDonut share={stats.top_decile_cost_share} />
+        </Card>
+      </div>
+
+      {/* Row 3 — this vs last month weekly area (2fr) + cost by age (1fr) */}
+      <div className="mc-dash-row">
+        <Card
+          title="Total cost: this month vs last month"
+          subtitle={`Weekly ${stats.cost_basis} cost from logged reports`}
+        >
+          <WeeklyArea
+            thisMonth={stats.weekly_this_month}
+            lastMonth={stats.weekly_last_month}
+          />
+        </Card>
+        <Card title="Cost by age" subtitle={`Avg ${stats.cost_basis} cost / patient`}>
+          <CostByAge bands={stats.cost_by_age} />
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+/* ----------------------------- Layout chrome ----------------------------- */
+
+const NAV = [
+  { key: 'overview', label: 'Overview', href: '/dashboard', svg: NavGrid, active: true },
+  { key: 'estimator', label: 'Estimator', href: '/', svg: NavPulse },
+  { key: 'reports', label: 'Reports', href: '/dashboard', svg: NavDoc },
+  { key: 'patients', label: 'Patients', href: '/dashboard', svg: NavUsers },
+  { key: 'settings', label: 'Settings', href: '/dashboard', svg: NavGear },
+]
+
+function Sidebar() {
+  return (
+    <aside style={s.sidebar} className="mc-dash-sidebar">
+      <div style={s.sideBrand}>
+        <div style={s.sideLogo}>M</div>
+        <div className="mc-collapse">
+          <div style={s.sideName}>MediCost</div>
+          <div style={s.sideSub}>Analytics</div>
         </div>
       </div>
 
-
-      <main style={s.main}>
-        {error && (
-          <div style={s.errorBox}>
-            Could not load dashboard data: {error}
-          </div>
-        )}
-
-        {!stats && !error && (
-          <div style={s.loading}>
-            <div style={s.loadingDot} />
-            Loading statistics…
-          </div>
-        )}
-
-        {stats && (
-          <>
-            <div style={s.sectionLabel}>This Month</div>
-            <div style={s.grid2}>
-              <StatCard label="Reports Generated" value={stats.reports_this_month.toString()}
-                sub="patients assessed this month" accent="#006838" />
-              <StatCard label="Average Estimated Cost" value={`$${fmt(stats.average_cost_this_month)}`}
-                sub="per patient this month" accent="#00a550" />
-            </div>
-
-            <div style={s.sectionLabel}>Overall</div>
-            <div style={s.grid3}>
-              <StatCard label="Total Reports" value={stats.total_reports.toString()}
-                sub="patients assessed overall" accent="#006838" />
-              <StatCard label="Average Estimated Cost" value={`$${fmt(stats.average_cost)}`}
-                sub="per patient overall" accent="#00a550" />
-              <StatCard label="Smoker Rate" value={`${stats.smoker_percentage}%`}
-                sub="of all assessed patients" accent="#d97706" />
-            </div>
-
-            <div style={s.sectionLabel}>High-Risk Patients</div>
-            <div style={s.grid2}>
-              <StatCard label="High-Risk Count" value={stats.high_risk_count.toString()}
-                sub={`${stats.high_risk_percentage}% of all assessed patients`}
-                accent="#dc2626"
-                badge={`Above $${fmt(stats.high_risk_threshold)} threshold`} />
-            </div>
-
-            <div style={s.sectionLabel}>Age Group Distribution</div>
-            <AgeChart groups={stats.age_groups}
-              total={Object.values(stats.age_groups).reduce((a, b) => a + b, 0)} />
-          </>
-        )}
-      </main>
-    </div>
+      <nav style={s.nav}>
+        {NAV.map((item) => {
+          const Svg = item.svg
+          return (
+            <a key={item.key} href={item.href} className="mc-nav-dark"
+               style={{ ...s.navItem, ...(item.active ? s.navItemActive : {}) }}>
+              <Svg color={item.active ? '#fff' : C.sidebarText} />
+              <span className="mc-collapse">{item.label}</span>
+            </a>
+          )
+        })}
+      </nav>
+    </aside>
   )
 }
 
-function StatCard({ label, value, sub, accent, badge }: {
-  label: string; value: string; sub: string; accent: string; badge?: string
+function Topbar({ lastUpdated, loading, onRefresh }: {
+  lastUpdated: Date | null; loading: boolean; onRefresh: () => void
 }) {
   return (
-    <div style={{ ...s.card, borderLeft: `4px solid ${accent}` }}>
-      <div style={s.cardLabel}>{label}</div>
-      <div style={{ ...s.cardValue, color: accent }}>{value}</div>
-      <div style={s.cardSub}>{sub}</div>
-      {badge && (
-        <div style={{ ...s.badge, background: accent + '18', color: accent, borderColor: accent + '40' }}>
-          {badge}
-        </div>
-      )}
+    <header style={s.topbar}>
+      <div>
+        <div style={s.topEyebrow}>Population insights</div>
+        <h1 style={s.topTitle}>Cost overview</h1>
+      </div>
+      <div style={s.topRight}>
+        {lastUpdated && (
+          <span style={s.updated}>Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        )}
+        <button onClick={onRefresh} style={s.refreshBtn} className="mc-btn" disabled={loading}>
+          <span style={{ display: 'inline-block', animation: loading ? 'mc_spin 0.8s linear infinite' : undefined }}>↻</span>
+          Refresh
+        </button>
+      </div>
+    </header>
+  )
+}
+
+/* ------------------------------- KPI cards ------------------------------- */
+
+function CostExposureCard({ total, momPct, basis }: {
+  total: number; momPct: number | null; basis: string
+}) {
+  // Rising predicted cost is unfavourable for finance -> orange warning tone.
+  const up = (momPct ?? 0) >= 0
+  return (
+    <div style={s.heroCard}>
+      <div style={s.heroLabel}>Cost exposure</div>
+      <div style={s.heroValue}>{usdCompact(total)}</div>
+      <div style={s.heroFootRow}>
+        {momPct !== null ? (
+          <span style={{ ...s.momChip, background: up ? 'rgba(239,159,39,0.22)' : 'rgba(133,183,235,0.22)', color: up ? C.orange : C.steel }}>
+            {up ? '▲' : '▼'} {pct1(Math.abs(momPct))} MoM
+          </span>
+        ) : (
+          <span style={s.heroNoTrend}>No prior month to compare</span>
+        )}
+        <span style={s.heroBasis}>{basis} · all assessed patients</span>
+      </div>
     </div>
   )
 }
 
-function AgeChart({ groups, total }: { groups: Record<string, number>; total: number }) {
-  const entries = Object.entries(groups)
-  const max = Math.max(...entries.map(([, v]) => v), 1)
-  const colors = ['#006838', '#006838', '#006838', '#006838']
+function KpiCard({ label, value, foot }: { label: string; value: string; foot: string }) {
+  return (
+    <div style={s.kpiCard} className="mc-card">
+      <div style={s.kpiLabel}>{label}</div>
+      <div style={s.kpiValue}>{value}</div>
+      <div style={s.kpiFoot}>{foot}</div>
+    </div>
+  )
+}
+
+function HighCostCard({ high, highMin }: {
+  high: Stats['high_cost']; highMin: number
+}) {
+  return (
+    <div style={s.kpiCard} className="mc-card">
+      <div style={s.kpiLabel}>High-cost share</div>
+      <div style={s.kpiValue}>{pct1(high.pct_patients)}</div>
+      <div style={{ ...s.kpiFoot, color: C.navy, fontWeight: 600 }}>
+        {pct1(high.pct_cost)} of total cost
+      </div>
+      <div style={s.kpiSubFoot}>cost tier ≥ {usd(highMin)}</div>
+    </div>
+  )
+}
+
+/* --------------------------------- Card ---------------------------------- */
+
+function Card({ title, subtitle, children }: {
+  title: string; subtitle?: string; children: React.ReactNode
+}) {
+  return (
+    <div style={s.card} className="mc-card">
+      <div style={s.cardHead}>
+        <div style={s.cardTitle}>{title}</div>
+        {subtitle && <div style={s.cardSub}>{subtitle}</div>}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function EmptyState({ text }: { text: string }) {
+  return <div style={s.empty}>{text}</div>
+}
+
+/* -------------------------- Row 2a — tier bars --------------------------- */
+
+function TierByMonth({ data }: { data: Stats['tier_by_month'] }) {
+  if (data.length === 0) {
+    return <EmptyState text="No logged reports yet to break down by month." />
+  }
+  // Grouped (not stacked) — each tier is its own rectangle, scaled to the
+  // largest single-tier count so heights are comparable across tiers/months.
+  const max = Math.max(...data.flatMap((d) => [d.high, d.med, d.low]), 1)
+  const h = 200
+  const barH = (v: number) => Math.max(v > 0 ? 3 : 0, Math.round((v / max) * (h - 40)))
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, height: h, padding: '8px 4px 0' }}>
+        {data.map((d) => {
+          const tiers = [
+            { key: 'high', label: 'High cost', value: d.high, color: TIER.high },
+            { key: 'med', label: 'Medium cost', value: d.med, color: TIER.med },
+            { key: 'low', label: 'Low cost', value: d.low, color: TIER.low },
+          ]
+          return (
+            <div key={d.month} style={s.barCol}>
+              <div style={s.barGroup}>
+                {tiers.map((t) => (
+                  <div key={t.key} style={s.barItem} title={`${d.label} · ${t.label}: ${count(t.value)} patients`}>
+                    <div style={s.barTotal}>{count(t.value)}</div>
+                    <div style={{ ...s.barRect, height: barH(t.value), background: t.color }} />
+                  </div>
+                ))}
+              </div>
+              <div style={s.barLabel}>{d.label}</div>
+            </div>
+          )
+        })}
+      </div>
+      <Legend
+        items={[
+          { label: 'High cost', color: TIER.high },
+          { label: 'Medium cost', color: TIER.med },
+          { label: 'Low cost', color: TIER.low },
+        ]}
+      />
+    </div>
+  )
+}
+
+/* ----------------------- Row 2b — concentration -------------------------- */
+
+function ConcentrationDonut({ share }: { share: number }) {
+  const size = 176, stroke = 22, r = (size - stroke) / 2, circ = 2 * Math.PI * r
+  const len = (Math.min(100, share) / 100) * circ
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, paddingTop: 6 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.track} strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.navy} strokeWidth={stroke}
+          strokeDasharray={`${len} ${circ - len}`} strokeLinecap="round" />
+        <text x="50%" y="46%" textAnchor="middle"
+          style={{ transform: 'rotate(90deg)', transformOrigin: 'center', fontSize: 30, fontWeight: 700, fill: C.ink, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          {pct1(share)}
+        </text>
+        <text x="50%" y="59%" textAnchor="middle"
+          style={{ transform: 'rotate(90deg)', transformOrigin: 'center', fontSize: 11, fill: C.muted }}>
+          of total cost
+        </text>
+      </svg>
+      <div style={s.donutCaption}>
+        The most expensive 10% of patients account for {pct1(share)} of predicted cost.
+      </div>
+    </div>
+  )
+}
+
+/* ----------------------- Row 3a — weekly area ---------------------------- */
+
+function WeeklyArea({ thisMonth, lastMonth }: {
+  thisMonth: { week: number; cost: number }[]
+  lastMonth: { week: number; cost: number }[]
+}) {
+  const allZero = [...thisMonth, ...lastMonth].every((p) => p.cost === 0)
+  if (allZero) {
+    return <EmptyState text="No weekly cost logged for this month or last month yet." />
+  }
+
+  const w = 520, h = 200, padX = 8, padTop = 16, padBottom = 28
+  const weeks = [1, 2, 3, 4]
+  const max = Math.max(...thisMonth.map((p) => p.cost), ...lastMonth.map((p) => p.cost), 1)
+  const x = (week: number) => padX + ((week - 1) / (weeks.length - 1)) * (w - padX * 2)
+  const y = (cost: number) => padTop + (1 - cost / max) * (h - padTop - padBottom)
+
+  // Smooth the polyline into a wave with a Catmull-Rom -> cubic Bézier spline
+  // so the series curve between weeks instead of meeting at sharp corners.
+  const smooth = (pts: readonly (readonly [number, number])[]) => {
+    if (pts.length < 2) return ''
+    let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] ?? pts[i]
+      const p1 = pts[i]
+      const p2 = pts[i + 1]
+      const p3 = pts[i + 2] ?? p2
+      const c1x = p1[0] + (p2[0] - p0[0]) / 6
+      const c1y = p1[1] + (p2[1] - p0[1]) / 6
+      const c2x = p2[0] - (p3[0] - p1[0]) / 6
+      const c2y = p2[1] - (p3[1] - p1[1]) / 6
+      d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`
+    }
+    return d
+  }
+
+  const series = (data: { week: number; cost: number }[]) => {
+    const pts = weeks.map((wk) => {
+      const found = data.find((p) => p.week === wk)
+      return [x(wk), y(found ? found.cost : 0)] as const
+    })
+    const line = smooth(pts)
+    const area = `${line} L${x(weeks[weeks.length - 1])},${h - padBottom} L${x(weeks[0])},${h - padBottom} Z`
+    return { line, area }
+  }
+  const last = series(lastMonth)
+  const cur = series(thisMonth)
 
   return (
-    <div style={s.chartCard}>
-      {entries.map(([label, count], i) => {
-        const pct = total > 0 ? Math.round((count / total) * 100) : 0
-        const barWidth = Math.round((count / max) * 100)
-        return (
-          <div key={label} style={s.chartRow}>
-            <div style={s.chartLabel}>{label}</div>
-            <div style={s.barTrack}>
-              <div style={{ ...s.bar, width: `${barWidth}%`, background: colors[i % colors.length] }} />
-            </div>
-            <div style={s.chartCount}>
-              {count} <span style={s.chartPct}>({pct}%)</span>
-            </div>
-          </div>
-        )
-      })}
+    <div>
+      <svg width="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ display: 'block' }}>
+        <defs>
+          <linearGradient id="area-this" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={C.navy} stopOpacity={0.28} />
+            <stop offset="100%" stopColor={C.navy} stopOpacity={0.02} />
+          </linearGradient>
+          <linearGradient id="area-last" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={C.orange} stopOpacity={0.26} />
+            <stop offset="100%" stopColor={C.orange} stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+        {/* last month behind */}
+        <path d={last.area} fill="url(#area-last)" />
+        <path d={last.line} fill="none" stroke={C.orange} strokeWidth={2.5} strokeLinejoin="round" />
+        {/* this month in front */}
+        <path d={cur.area} fill="url(#area-this)" />
+        <path d={cur.line} fill="none" stroke={C.navy} strokeWidth={2.5} strokeLinejoin="round" />
+        {weeks.map((wk) => (
+          <text key={wk} x={x(wk)} y={h - 8} textAnchor="middle" style={{ fontSize: 11, fill: C.muted }}>W{wk}</text>
+        ))}
+      </svg>
+      <Legend
+        items={[
+          { label: 'This month', color: C.navy },
+          { label: 'Last month', color: C.orange },
+        ]}
+      />
     </div>
   )
 }
 
+/* ------------------------ Row 3b — cost by age --------------------------- */
+
+function CostByAge({ bands }: { bands: Stats['cost_by_age'] }) {
+  const max = Math.max(...bands.map((b) => b.avg_cost), 1)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 6 }}>
+      {bands.map((b) => (
+        <div key={b.band}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 500, color: C.mid }}>{b.band}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{usd(b.avg_cost)}</span>
+          </div>
+          <div style={s.hTrack}>
+            <div style={{ height: '100%', borderRadius: 999, width: `${(b.avg_cost / max) * 100}%`, background: C.navy, transition: 'width .6s cubic-bezier(.2,.7,.2,1)' }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* -------------------------------- Legend --------------------------------- */
+
+function Legend({ items }: { items: { label: string; color: string }[] }) {
+  return (
+    <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 16, justifyContent: 'center' }}>
+      {items.map((it) => (
+        <div key={it.label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <span style={{ width: 11, height: 11, borderRadius: 3, background: it.color }} />
+          <span style={{ fontSize: 12.5, color: C.mid, fontWeight: 500 }}>{it.label}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ------------------------------ Nav icons -------------------------------- */
+
+function svgWrap(children: React.ReactNode, color: string) {
+  return (
+    <svg width={19} height={19} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">{children}</svg>
+  )
+}
+function NavGrid({ color }: { color: string }) { return svgWrap(<><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></>, color) }
+function NavPulse({ color }: { color: string }) { return svgWrap(<path d="M3 12h4l2 6 4-14 2 8h6" />, color) }
+function NavDoc({ color }: { color: string }) { return svgWrap(<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M8 13h8M8 17h8" /></>, color) }
+function NavUsers({ color }: { color: string }) { return svgWrap(<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>, color) }
+function NavGear({ color }: { color: string }) { return svgWrap(<><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></>, color) }
+
+/* -------------------------------- Styles --------------------------------- */
+
 const s: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight: '100vh',
-    background: '#f4f6f4',
-    display: 'flex',
-    flexDirection: 'column',
+  shell: { minHeight: '100vh', display: 'flex', background: '#f3f6fb' },
+
+  sidebar: {
+    width: 220, flexShrink: 0, background: C.navy,
+    display: 'flex', flexDirection: 'column', padding: '24px 16px',
+    position: 'sticky', top: 0, height: '100vh',
   },
-  header: {
-    background: '#fff',
-    borderBottom: '1.5px solid #dde3dd',
-    boxShadow: '0 1px 4px rgba(0,60,30,0.06)',
+  sideBrand: { display: 'flex', alignItems: 'center', gap: 12, padding: '0 6px 24px' },
+  sideLogo: {
+    width: 40, height: 40, borderRadius: '50%', background: C.navyActive, color: '#fff',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontWeight: 700, fontSize: 18, fontFamily: "'Plus Jakarta Sans', sans-serif", flexShrink: 0,
   },
-  headerInner: {
-    maxWidth: 1160,
-    margin: '0 auto',
-    padding: '14px 32px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  sideName: { fontSize: 16, fontWeight: 600, color: '#fff', fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.02em' },
+  sideSub: { fontSize: 12, color: C.sidebarText },
+  nav: { display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 },
+  navItem: {
+    display: 'flex', alignItems: 'center', gap: 12, padding: '11px 12px', borderRadius: 10,
+    color: C.sidebarText, textDecoration: 'none', fontSize: 14, fontWeight: 500,
   },
-  brand: { display: 'flex', alignItems: 'center', gap: 14 },
-  brandLogo: {
-    width: 40, height: 40, borderRadius: 10,
-    background: '#006838',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  navItemActive: { background: C.navyActive, color: '#fff' },
+
+  body: { flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 },
+  topbar: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+    padding: '24px 30px 18px', flexWrap: 'wrap',
   },
-  brandName: { fontSize: 17, fontWeight: 800, color: '#1a1f1a', lineHeight: 1.2 },
-  brandSub: { fontSize: 12, color: '#7a8a7a', marginTop: 2 },
-  headerRight: { display: 'flex', alignItems: 'center', gap: 12 },
-  updated: { fontSize: 12, color: '#9aaa9a' },
+  topEyebrow: { fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.navy },
+  topTitle: { fontSize: 25, fontWeight: 600, color: C.ink, fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.02em', marginTop: 4 },
+  topRight: { display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
+  updated: { fontSize: 12, color: C.muted },
   refreshBtn: {
-    padding: '7px 16px', borderRadius: 7,
-    background: '#e8f5ee', border: '1.5px solid #b2dfc4',
-    color: '#006838', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+    display: 'inline-flex', alignItems: 'center', gap: 8, height: 40, padding: '0 18px', borderRadius: 10,
+    background: C.navy, color: '#fff', border: 'none', fontWeight: 500,
+    fontSize: 14, cursor: 'pointer',
   },
-  backBtn: {
-    padding: '7px 16px', borderRadius: 7,
-    background: '#006838', border: 'none',
-    color: '#fff', fontWeight: 600, fontSize: 13, textDecoration: 'none',
+
+  main: { flex: 1, padding: '0 30px 36px', width: '100%', boxSizing: 'border-box' },
+
+  /* KPI cards */
+  heroCard: {
+    background: C.navy, borderRadius: 16, padding: 20, color: '#fff',
+    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
   },
-  heroBand: {
-    background: '#004d29',
-    padding: '28px 0',
+  heroLabel: { fontSize: 13, color: C.sidebarText, fontWeight: 500 },
+  heroValue: { fontSize: 32, fontWeight: 700, marginTop: 10, fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.02em', lineHeight: 1 },
+  heroFootRow: { display: 'flex', flexDirection: 'column', gap: 6, marginTop: 14 },
+  momChip: { alignSelf: 'flex-start', fontSize: 12.5, fontWeight: 600, padding: '3px 9px', borderRadius: 999 },
+  heroNoTrend: { fontSize: 12, color: C.sidebarText },
+  heroBasis: { fontSize: 11.5, color: 'rgba(181,212,244,0.85)' },
+
+  kpiCard: {
+    background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, padding: 20,
+    display: 'flex', flexDirection: 'column',
   },
-  heroInner: {
-    maxWidth: 1160,
-    margin: '0 auto',
-    padding: '0 32px',
-  },
-  heroTitle: {
-    fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 6,
-  },
-  heroSub: {
-    fontSize: 14, color: 'rgba(255,255,255,0.75)',
-  },
-  main: {
-    flex: 1,
-    maxWidth: 1160,
-    margin: '0 auto',
-    padding: '36px 32px',
-    width: '100%',
-    boxSizing: 'border-box',
-  },
-  sectionLabel: {
-    fontSize: 11, fontWeight: 700, color: '#7a8a7a', textTransform: 'uppercase',
-    letterSpacing: '0.1em', marginBottom: 14, marginTop: 32,
-  },
-  grid2: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: 16,
-    maxWidth: 720,
-  },
-  grid3: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-    gap: 16,
-  },
+  kpiLabel: { fontSize: 13, color: C.muted, fontWeight: 500 },
+  kpiValue: { fontSize: 30, fontWeight: 700, color: C.ink, marginTop: 10, fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.02em', lineHeight: 1 },
+  kpiFoot: { fontSize: 12.5, color: C.muted, marginTop: 12 },
+  kpiSubFoot: { fontSize: 11.5, color: C.muted, marginTop: 3 },
+
+  /* Cards */
   card: {
-    background: '#fff',
-    borderRadius: 12,
-    boxShadow: '0 1px 6px rgba(0,60,30,0.07)',
-    padding: '22px 26px',
+    background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, padding: 22,
+    minWidth: 0,
   },
-  cardLabel: {
-    fontSize: 12, fontWeight: 700, color: '#7a8a7a', textTransform: 'uppercase', letterSpacing: '0.06em',
+  cardHead: { marginBottom: 16 },
+  cardTitle: { fontSize: 15.5, fontWeight: 600, color: C.ink, fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.01em' },
+  cardSub: { fontSize: 12.5, color: C.muted, marginTop: 3 },
+
+  /* Tier bars */
+  barCol: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 8, minWidth: 0 },
+  barGroup: { display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: 6, width: '100%' },
+  barItem: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, maxWidth: 26 },
+  barTotal: { fontSize: 12, fontWeight: 600, color: C.ink },
+  barRect: {
+    width: '100%', borderRadius: 6,
+    transition: 'height .6s cubic-bezier(.2,.7,.2,1)',
   },
-  cardValue: { fontSize: 38, fontWeight: 800, lineHeight: 1, marginBottom: 8 },
-  cardSub: { fontSize: 13, color: '#7a8a7a' },
-  badge: {
-    display: 'inline-block', marginTop: 12,
-    padding: '4px 12px', borderRadius: 20,
-    fontSize: 11, fontWeight: 700, border: '1px solid transparent',
+  barLabel: { fontSize: 12, color: C.muted, fontWeight: 500 },
+
+  donutCaption: { fontSize: 12.5, color: C.mid, textAlign: 'center', maxWidth: 240, lineHeight: 1.5 },
+
+  hTrack: { height: 12, background: C.track, borderRadius: 999, overflow: 'hidden' },
+
+  empty: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center',
+    minHeight: 180, color: C.muted, fontSize: 13.5, padding: '0 20px', lineHeight: 1.6,
   },
-  chartCard: {
-    background: '#fff',
-    borderRadius: 12,
-    boxShadow: '0 1px 6px rgba(0,60,30,0.07)',
-    padding: '24px 28px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 16,
-  },
-  chartRow: { display: 'flex', alignItems: 'center', gap: 16 },
-  chartLabel: { width: 56, fontSize: 13, fontWeight: 600, color: '#4a5a4a', textAlign: 'right' as const },
-  barTrack: { flex: 1, height: 30, background: '#f4f6f4', borderRadius: 6, overflow: 'hidden' },
-  bar: { height: '100%', borderRadius: 6, transition: 'width 0.4s ease' },
-  chartCount: { width: 90, fontSize: 13, fontWeight: 600, color: '#4a5a4a' },
-  chartPct: { fontWeight: 600, color: '#4a5a4a' },
-  loading: {
-    display: 'flex', alignItems: 'center', gap: 12,
-    textAlign: 'center', padding: '80px 0', color: '#9aaa9a', fontSize: 15, justifyContent: 'center',
-  },
-  loadingDot: {
-    width: 16, height: 16, borderRadius: '50%',
-    border: '3px solid #dde3dd', borderTopColor: '#006838',
-    animation: 'spin 0.75s linear infinite',
-  },
-  errorBox: {
-    background: '#fff5f5', border: '1px solid #fcbcbc', borderRadius: 10,
-    padding: '14px 18px', color: '#c53030', fontSize: 14, marginBottom: 24,
-  },
-  footer: {
-    background: '#fff',
-    borderTop: '1.5px solid #dde3dd',
-  },
-  footerInner: {
-    maxWidth: 1160,
-    margin: '0 auto',
-    padding: '18px 32px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 16,
-  },
-  footerBrand: {
-    fontSize: 13, fontWeight: 800, color: '#006838',
-  },
-  footerText: {
-    fontSize: 12, color: '#9aaa9a',
-  },
+
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '80px 0', color: C.muted, fontSize: 15 },
+  loadingDot: { width: 16, height: 16, borderRadius: '50%', border: '3px solid #cfdcec', borderTopColor: C.navy, animation: 'mc_spin 0.75s linear infinite' },
+  errorBox: { background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '14px 18px', color: '#b91c1c', fontSize: 14, marginBottom: 18 },
 }

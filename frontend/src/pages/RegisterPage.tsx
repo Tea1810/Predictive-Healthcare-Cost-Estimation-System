@@ -41,11 +41,11 @@ export default function RegisterPage() {
           </div>
           <span style={s.brandName}>MediCost</span>
         </div>
-        <Link to="/login" style={s.signinLink}>Already have an account? Sign In</Link>
+        <Link to="/login" style={s.signinLink} className="mc-btn-ghost">Already have an account? Sign In</Link>
       </div>
 
       <div style={s.body}>
-        <div style={s.formCard}>
+        <div style={s.formCard} className="mc-fade-up">
           <div style={s.cardTop}>
             <h1 style={s.formTitle}>Create Account</h1>
             <p style={s.formSub}>Start estimating healthcare costs today</p>
@@ -55,13 +55,13 @@ export default function RegisterPage() {
             <div style={s.row2}>
               <div style={s.fieldGroup}>
                 <label style={s.label}>Full Name</label>
-                <input style={s.input} type="text" value={displayName}
+                <input style={s.input} className="mc-input" type="text" value={displayName}
                   onChange={e => setDisplayName(e.target.value)} required
                   autoComplete="name" placeholder="Jane Smith" />
               </div>
               <div style={s.fieldGroup}>
                 <label style={s.label}>Email Address</label>
-                <input style={s.input} type="email" value={email}
+                <input style={s.input} className="mc-input" type="email" value={email}
                   onChange={e => setEmail(e.target.value)} required
                   autoComplete="email" placeholder="your@email.com" />
               </div>
@@ -69,19 +69,19 @@ export default function RegisterPage() {
             <div style={s.row2}>
               <div style={s.fieldGroup}>
                 <label style={s.label}>Password</label>
-                <input style={s.input} type="password" value={password}
+                <input style={s.input} className="mc-input" type="password" value={password}
                   onChange={e => setPassword(e.target.value)} required
                   minLength={6} autoComplete="new-password" placeholder="Min. 6 characters" />
               </div>
               <div style={s.fieldGroup}>
                 <label style={s.label}>Confirm Password</label>
-                <input style={s.input} type="password" value={confirm}
+                <input style={s.input} className="mc-input" type="password" value={confirm}
                   onChange={e => setConfirm(e.target.value)} required
                   autoComplete="new-password" placeholder="Repeat password" />
               </div>
             </div>
             {error && <div style={s.error}>{error}</div>}
-            <button style={s.btn} type="submit" disabled={loading}>
+            <button style={s.btn} className="mc-btn" type="submit" disabled={loading}>
               {loading ? 'Creating account…' : 'Create Account'}
             </button>
           </form>
@@ -115,11 +115,11 @@ const s: Record<string, React.CSSProperties> = {
     minHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
-    background: '#f4f6f4',
   },
   topBar: {
-    background: '#006838',
-    padding: '16px 40px',
+    background: 'linear-gradient(135deg, #0f1511 0%, #14241c 60%, #0a2c1e 100%)',
+    borderBottom: '1px solid rgba(16,185,129,0.16)',
+    padding: '18px 40px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -127,32 +127,34 @@ const s: Record<string, React.CSSProperties> = {
   brandArea: {
     display: 'flex',
     alignItems: 'center',
-    gap: 10,
+    gap: 11,
   },
   brandLogo: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    background: 'rgba(255,255,255,0.15)',
-    border: '1.5px solid rgba(255,255,255,0.25)',
+    width: 40,
+    height: 40,
+    borderRadius: 11,
+    background: 'linear-gradient(135deg, #10b981, #059669)',
+    boxShadow: '0 6px 16px rgba(16,185,129,0.40)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
   brandName: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: 800,
-    letterSpacing: '-0.2px',
+    letterSpacing: '-0.02em',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
   },
   signinLink: {
-    color: 'rgba(255,255,255,0.85)',
+    color: 'rgba(255,255,255,0.90)',
     fontSize: 13,
     fontWeight: 600,
     textDecoration: 'none',
-    border: '1.5px solid rgba(255,255,255,0.35)',
-    padding: '6px 14px',
-    borderRadius: 6,
+    border: '1px solid rgba(255,255,255,0.22)',
+    background: 'rgba(255,255,255,0.06)',
+    padding: '8px 15px',
+    borderRadius: 9,
   },
   body: {
     flex: 1,
@@ -163,8 +165,9 @@ const s: Record<string, React.CSSProperties> = {
   },
   formCard: {
     background: '#fff',
-    borderRadius: 16,
-    boxShadow: '0 4px 24px rgba(0,60,30,0.10)',
+    borderRadius: 20,
+    boxShadow: '0 24px 48px -16px rgba(15,21,17,0.22), 0 8px 18px -10px rgba(15,21,17,0.10)',
+    border: '1px solid #eef1ef',
     padding: '44px 48px',
     width: '100%',
     maxWidth: 680,
@@ -172,17 +175,19 @@ const s: Record<string, React.CSSProperties> = {
   cardTop: {
     marginBottom: 32,
     paddingBottom: 24,
-    borderBottom: '1.5px solid #edf2ed',
+    borderBottom: '1px solid #eef1ef',
   },
   formTitle: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 800,
-    color: '#1a1f1a',
+    color: '#0f1511',
     marginBottom: 6,
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    letterSpacing: '-0.02em',
   },
   formSub: {
     fontSize: 14,
-    color: '#7a8a7a',
+    color: '#8a958c',
   },
   form: {
     display: 'flex',
@@ -197,50 +202,52 @@ const s: Record<string, React.CSSProperties> = {
   fieldGroup: {
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: 6,
+    gap: 7,
   },
   label: {
     fontSize: 13,
     fontWeight: 600,
-    color: '#4a5a4a',
+    color: '#475247',
   },
   input: {
-    padding: '11px 14px',
-    borderRadius: 8,
-    border: '1.5px solid #dde3dd',
+    padding: '12px 14px',
+    borderRadius: 10,
+    border: '1.5px solid #e3e8e4',
     fontSize: 14,
-    color: '#1a1f1a',
-    background: '#fff',
+    color: '#0f1511',
+    background: '#f6f8f6',
     width: '100%',
   },
   btn: {
     marginTop: 4,
-    padding: '13px',
-    borderRadius: 8,
-    background: '#006838',
+    padding: '14px',
+    borderRadius: 12,
+    background: 'linear-gradient(135deg, #10b981, #059669)',
     color: '#fff',
     fontWeight: 700,
     fontSize: 15,
     border: 'none',
     cursor: 'pointer',
     width: '100%',
+    boxShadow: '0 8px 20px -6px rgba(16,185,129,0.50)',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
   },
   error: {
-    background: '#fff5f5',
-    border: '1px solid #fcbcbc',
-    borderRadius: 8,
-    padding: '10px 14px',
-    color: '#c53030',
+    background: '#fef2f2',
+    border: '1px solid #fecaca',
+    borderRadius: 10,
+    padding: '11px 14px',
+    color: '#b91c1c',
     fontSize: 13,
   },
   footer: {
     marginTop: 24,
     fontSize: 12,
-    color: '#9aaa9a',
+    color: '#8a958c',
     textAlign: 'center' as const,
   },
   footerLink: {
-    color: '#006838',
+    color: '#059669',
     fontWeight: 600,
     cursor: 'pointer',
   },

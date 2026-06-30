@@ -103,19 +103,21 @@ function PredictorPage() {
           </div>
         </div>
         <div style={s.navRight}>
-          <a href="/dashboard" style={s.dashLink}>Analytics</a>
+          <a href="/dashboard" style={s.dashLink} className="mc-btn-ghost">Analytics</a>
           <div style={s.userChip}>
             <div style={s.userAvatar}>{displayName.charAt(0).toUpperCase()}</div>
             <span style={s.userName}>{displayName}</span>
           </div>
-          <button style={s.logoutBtn} onClick={logout}>
+          <button style={s.logoutBtn} className="mc-btn-ghost" onClick={logout} aria-label="Sign out">
             <Icon name="logout" size={16} />
           </button>
         </div>
       </header>
 
       <div style={s.heroBanner}>
+        <div style={s.heroGlow} />
         <div style={s.heroContent}>
+          <span style={s.heroEyebrow}>AI-POWERED ESTIMATION</span>
           <h1 style={s.heroTitle}>Cost Estimation</h1>
           <p style={s.heroSub}>Fill in the patient details below to receive an AI-powered annual healthcare cost estimate.</p>
         </div>
@@ -174,7 +176,6 @@ export default function App() {
 const s: Record<string, React.CSSProperties> = {
   pageWrapper: {
     minHeight: '100vh',
-    background: '#f4f6f4',
     display: 'flex',
     flexDirection: 'column',
   },
@@ -182,58 +183,80 @@ const s: Record<string, React.CSSProperties> = {
     position: 'sticky',
     top: 0,
     zIndex: 100,
-    background: '#fff',
-    borderBottom: '1.5px solid #dde3dd',
-    boxShadow: '0 1px 4px rgba(0,60,30,0.06)',
+    background: 'rgba(15,21,17,0.92)',
+    backdropFilter: 'saturate(140%) blur(10px)',
+    WebkitBackdropFilter: 'saturate(140%) blur(10px)',
+    borderBottom: '1px solid rgba(16,185,129,0.18)',
+    boxShadow: '0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 24px rgba(15,21,17,0.18)',
     padding: '0 32px',
-    height: 64,
+    height: 68,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   navLeft: { display: 'flex', alignItems: 'center', gap: 14 },
   navLogo: {
-    width: 40, height: 40, borderRadius: 10, background: '#006838',
+    width: 42, height: 42, borderRadius: 12,
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    boxShadow: '0 6px 16px rgba(16,185,129,0.40)',
     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  navTitle: { fontSize: 17, fontWeight: 800, color: '#1a1f1a', lineHeight: 1.2 },
-  navSub: { fontSize: 12, color: '#7a8a7a', marginTop: 2 },
+  navTitle: { fontSize: 18, fontWeight: 800, color: '#fff', lineHeight: 1.2, fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.02em' },
+  navSub: { fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 2 },
   navRight: { display: 'flex', alignItems: 'center', gap: 10 },
   userChip: {
     display: 'flex', alignItems: 'center', gap: 8,
-    padding: '5px 12px 5px 6px', borderRadius: 20,
-    background: '#e8f5ee', border: '1.5px solid #b2dfc4',
+    padding: '5px 14px 5px 6px', borderRadius: 999,
+    background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.30)',
   },
   userAvatar: {
-    width: 26, height: 26, borderRadius: '50%', background: '#006838',
-    color: '#fff', fontSize: 12, fontWeight: 700,
+    width: 28, height: 28, borderRadius: '50%',
+    background: 'linear-gradient(135deg, #34d399, #059669)',
+    color: '#04130c', fontSize: 12, fontWeight: 800,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
-  userName: { fontSize: 13, fontWeight: 600, color: '#006838' },
+  userName: { fontSize: 13, fontWeight: 600, color: '#a7f3d0' },
   dashLink: {
-    padding: '7px 16px', borderRadius: 7, background: '#f4f6f4',
-    border: '1.5px solid #dde3dd', color: '#4a5a4a',
+    padding: '8px 16px', borderRadius: 9,
+    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.92)',
     fontWeight: 600, fontSize: 13, textDecoration: 'none',
   },
   logoutBtn: {
-    display: 'flex', alignItems: 'center', padding: '7px 10px',
-    borderRadius: 7, background: '#fff', border: '1.5px solid #dde3dd',
-    color: '#7a8a7a', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', padding: '8px 11px',
+    borderRadius: 9, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.18)',
+    color: 'rgba(255,255,255,0.75)', cursor: 'pointer',
   },
-  heroBanner: { background: '#004d29', padding: '28px 0' },
-  heroContent: { maxWidth: 1000, margin: '0 auto', padding: '0 32px' },
-  heroTitle: { fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 6 },
-  heroSub: { fontSize: 14, color: 'rgba(255,255,255,0.75)' },
+  heroBanner: {
+    position: 'relative',
+    background: 'linear-gradient(135deg, #0f1511 0%, #15241c 55%, #0a2c1e 100%)',
+    padding: '44px 0 48px',
+    overflow: 'hidden',
+    borderBottom: '1px solid rgba(16,185,129,0.14)',
+  },
+  heroGlow: {
+    position: 'absolute', top: -120, right: -80, width: 380, height: 380,
+    background: 'radial-gradient(circle, rgba(16,185,129,0.35), transparent 65%)',
+    filter: 'blur(8px)', pointerEvents: 'none',
+  },
+  heroContent: { position: 'relative', maxWidth: 1000, margin: '0 auto', padding: '0 32px' },
+  heroEyebrow: {
+    display: 'inline-block', fontSize: 11, fontWeight: 800, letterSpacing: '0.14em',
+    color: '#6ee7b7', background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.30)',
+    padding: '5px 12px', borderRadius: 999, marginBottom: 16,
+  },
+  heroTitle: { fontSize: 34, fontWeight: 800, color: '#fff', marginBottom: 8, fontFamily: "'Plus Jakarta Sans', sans-serif", letterSpacing: '-0.03em' },
+  heroSub: { fontSize: 15, color: 'rgba(255,255,255,0.66)', maxWidth: 560 },
   main: {
-    flex: 1, padding: '36px 24px',
+    flex: 1, padding: '36px 24px 48px',
     display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
     maxWidth: 1000, margin: '0 auto', width: '100%', boxSizing: 'border-box',
   },
-  footer: { background: '#fff', borderTop: '1.5px solid #dde3dd' },
+  footer: { background: 'var(--ink)', borderTop: '1px solid rgba(16,185,129,0.14)' },
   footerInner: {
-    maxWidth: 1000, margin: '0 auto', padding: '16px 32px',
-    display: 'flex', alignItems: 'center', gap: 16,
+    maxWidth: 1000, margin: '0 auto', padding: '20px 32px',
+    display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
   },
-  footerBrand: { fontSize: 13, fontWeight: 800, color: '#006838' },
-  footerText: { fontSize: 12, color: '#9aaa9a' },
+  footerBrand: { fontSize: 13, fontWeight: 800, color: '#fff', fontFamily: "'Plus Jakarta Sans', sans-serif" },
+  footerText: { fontSize: 12, color: 'rgba(255,255,255,0.45)' },
 }
