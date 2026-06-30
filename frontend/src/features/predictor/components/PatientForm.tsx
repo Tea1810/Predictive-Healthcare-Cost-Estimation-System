@@ -1,6 +1,15 @@
-import { FIELDS } from '../constants/fields.js'
+import type { CSSProperties, FormEvent } from 'react'
+import { FIELDS } from '../constants'
+import type { Form, Setter } from '../types'
 
-export default function PatientForm({ form, set, loading, onSubmit }) {
+interface PatientFormProps {
+  form: Form
+  set: Setter
+  loading: boolean
+  onSubmit: (e: FormEvent) => void
+}
+
+export default function PatientForm({ form, set, loading, onSubmit }: PatientFormProps) {
   return (
     <form onSubmit={onSubmit}>
 
@@ -86,8 +95,8 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
                 type="number"
                 step={step}
                 placeholder={placeholder}
-                value={form[key]}
-                onChange={set(key)}
+                value={form[key as keyof Form]}
+                onChange={set(key as keyof Form)}
               />
             </div>
           ))}
@@ -106,7 +115,7 @@ export default function PatientForm({ form, set, loading, onSubmit }) {
   )
 }
 
-const s = {
+const s: Record<string, CSSProperties> = {
   section: { marginBottom: 28 },
   sectionHeader: {
     display: 'flex',

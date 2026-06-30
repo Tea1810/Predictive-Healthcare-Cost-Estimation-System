@@ -1,7 +1,8 @@
-import { useState, FormEvent } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
+import { useAuth } from '../AuthContext'
 import { useNavigate, Link } from 'react-router-dom'
-import Icon from '../components/Icon'
+import Icon from '../../../shared/ui/Icon'
 
 export default function RegisterPage() {
   const { register } = useAuth()
@@ -23,7 +24,7 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       await register(email, password, displayName)
-      navigate('/')
+      navigate('/dashboard')
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? ''
       setError(friendlyError(code))

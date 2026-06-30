@@ -1,16 +1,33 @@
 import { useRef, useState } from 'react'
-import Icon from '../components/Icon.tsx'
-import PatientForm from './PatientForm.jsx'
-import { downloadReport } from '../assets/api.js'
+import type { ChangeEvent, CSSProperties, FormEvent } from 'react'
+import Icon from '../../../shared/ui/Icon'
+import PatientForm from './PatientForm'
+import { downloadReport } from '../api'
+import type { Form, PredictionResult, Setter } from '../types'
 
-export default function Card({
+interface PredictorCardProps {
+  form: Form
+  set: Setter
+  loading: boolean
+  onSubmit: (e: FormEvent) => void
+  result: PredictionResult | null
+  error: string | null
+  patientName: string
+  csvRows: Form[]
+  csvIndex: number
+  onCsvLoad: (file: File) => void
+  onCsvPrev: () => void
+  onCsvNext: () => void
+}
+
+export default function PredictorCard({
   form, set, loading, onSubmit, result, error, patientName,
   csvRows, csvIndex, onCsvLoad, onCsvPrev, onCsvNext,
-}) {
+}: PredictorCardProps) {
   const [downloading, setDownloading] = useState(false)
-  const fileRef = useRef(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) onCsvLoad(file)
     e.target.value = ''
@@ -136,7 +153,7 @@ export default function Card({
   )
 }
 
-const s = {
+const s: Record<string, CSSProperties> = {
   card: {
     background: '#fff',
     borderRadius: 20,

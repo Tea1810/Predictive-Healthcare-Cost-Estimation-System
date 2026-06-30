@@ -1,25 +1,14 @@
 import { useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { predictCost } from './assets/api.js'
-import { FIELDS, initialForm } from './constants/fields.js'
-import Card from './component/App.jsx'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
-import DashboardPage from './pages/DashboardPage'
-import ProtectedRoute from './components/ProtectedRoute'
-import { AuthProvider, useAuth } from './context/AuthContext'
-import Icon from './components/Icon'
-import { CsvService } from './services/CsvService'
+import type { ChangeEvent, CSSProperties, FormEvent } from 'react'
+import { useAuth } from '../../auth/AuthContext'
+import { predictCost } from '../api'
+import { CsvService } from '../csv'
+import { FIELDS, initialForm } from '../constants'
+import type { Form, PredictionResult } from '../types'
+import PredictorCard from '../components/PredictorCard'
+import Icon from '../../../shared/ui/Icon'
 
-type Form = typeof initialForm
-
-type PredictionResult = {
-  estimated_annual_cost: number
-  contributions: Record<string, number>
-  report: string
-}
-
-function PredictorPage() {
+export default function PredictorPage() {
   const { currentUser, logout } = useAuth()
   const [form, setForm] = useState<Form>(initialForm)
   const [result, setResult] = useState<PredictionResult | null>(null)
@@ -29,10 +18,10 @@ function PredictorPage() {
   const [csvIndex, setCsvIndex] = useState(-1)
 
   const set = (key: keyof Form) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setForm((f) => ({ ...f, [key]: e.target.value }))
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -44,9 +33,9 @@ function PredictorPage() {
       num_diseases: parseInt(form.num_diseases),
       is_smoker: parseInt(form.is_smoker),
     }
-    FIELDS.optional.forEach(({ key }: { key: keyof Form }) => {
-      const v = form[key]
-      if (v !== '') payload[key as string] = parseFloat(v)
+    FIELDS.optional.forEach(({ key }) => {
+      const v = form[key as keyof Form]
+      if (v !== '') payload[key] = parseFloat(v)
     })
 
     try {
@@ -124,7 +113,7 @@ function PredictorPage() {
       </div>
 
       <main style={s.main}>
-        <Card
+        <PredictorCard
           form={form}
           set={set}
           loading={loading}
@@ -150,30 +139,7 @@ function PredictorPage() {
   )
 }
 
-export default function App() {
-  return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <PredictorPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-  )
-}
-
-const s: Record<string, React.CSSProperties> = {
+const s: Record<string, CSSProperties> = {
   pageWrapper: {
     minHeight: '100vh',
     display: 'flex',

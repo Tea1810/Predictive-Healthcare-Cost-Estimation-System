@@ -1,6 +1,5 @@
-import { initialForm } from '../constants/fields.js'
-
-type Form = typeof initialForm
+import { initialForm } from './constants'
+import type { Form } from './types'
 
 function detectDelimiter(line: string): string {
   const semis = (line.match(/;/g) ?? []).length

@@ -1,54 +1,9 @@
 import { useEffect, useState } from 'react'
+import { C, TIER } from '../../../shared/styles/tokens'
+import { usd, usdCompact, count, pct1 } from '../../../shared/styles/format'
+import { getDashboardStats } from '../api'
+import type { Stats } from '../types'
 
-/* ----------------------------- Data contract ----------------------------- */
-
-type Stats = {
-  cost_basis: 'predicted' | 'billed' | 'reimbursed'
-  cost_tiers: { low_max: number; high_min: number }
-  total_patients: number
-  total_predicted_cost: number
-  average_cost: number
-  tier_counts: { low: number; med: number; high: number }
-  high_cost: { count: number; pct_patients: number; pct_cost: number }
-  top_decile_cost_share: number
-  cost_by_age: { band: string; avg_cost: number }[]
-  total_reports: number
-  mom_pct: number | null
-  tier_by_month: { month: string; label: string; low: number; med: number; high: number }[]
-  weekly_this_month: { week: number; cost: number }[]
-  weekly_last_month: { week: number; cost: number }[]
-}
-
-const API = '/api'
-
-/* Navy + orange palette tokens (see rebuild spec). */
-const C = {
-  navy: '#0C447C',
-  navyActive: '#14538C',
-  orange: '#EF9F27',
-  steel: '#85B7EB',
-  track: '#E6F1FB',
-  sidebarText: '#B5D4F4',
-  ink: '#0f1828',
-  mid: '#48566a',
-  muted: '#8593a6',
-  border: '#e6ebf2',
-  surface: '#ffffff',
-}
-
-/* Cost-tier colours, shared across the tier bars, donut legend and KPIs. */
-const TIER = {
-  high: C.navy,
-  med: C.orange,
-  low: C.steel,
-}
-
-const usd = (n: number) =>
-  '$' + Math.round(n).toLocaleString('en-US')
-const usdCompact = (n: number) =>
-  '$' + n.toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 1 })
-const count = (n: number) => Math.round(n).toLocaleString('en-US')
-const pct1 = (n: number) => `${n.toFixed(1)}%`
 const basisLabel = (b: Stats['cost_basis']) => b.charAt(0).toUpperCase() + b.slice(1)
 
 
@@ -61,9 +16,7 @@ export default function DashboardPage() {
   async function load() {
     setLoading(true)
     try {
-      const res = await fetch(`${API}/dashboard`)
-      if (!res.ok) throw new Error(`Server error ${res.status}`)
-      setStats(await res.json())
+      setStats(await getDashboardStats())
       setLastUpdated(new Date())
       setError(null)
     } catch (e) {
@@ -152,7 +105,7 @@ function DashboardContent({ stats }: { stats: Stats }) {
 
 const NAV = [
   { key: 'overview', label: 'Overview', href: '/dashboard', svg: NavGrid, active: true },
-  { key: 'estimator', label: 'Estimator', href: '/', svg: NavPulse },
+  { key: 'estimator', label: 'Estimator', href: '/estimator', svg: NavPulse },
   { key: 'reports', label: 'Reports', href: '/dashboard', svg: NavDoc },
   { key: 'patients', label: 'Patients', href: '/dashboard', svg: NavUsers },
   { key: 'settings', label: 'Settings', href: '/dashboard', svg: NavGear },
