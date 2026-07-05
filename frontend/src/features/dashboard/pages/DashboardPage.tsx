@@ -6,8 +6,6 @@ import { usd, usdCompact, count, pct1 } from '../../../shared/styles/format'
 import { getDashboardStats } from '../api'
 import type { Stats } from '../types'
 
-const basisLabel = (b: Stats['cost_basis']) => b.charAt(0).toUpperCase() + b.slice(1)
-
 
 export default function DashboardPage() {
   const { logout } = useAuth()
@@ -49,34 +47,33 @@ export default function DashboardPage() {
 }
 
 function DashboardContent({ stats }: { stats: Stats }) {
-  const basis = basisLabel(stats.cost_basis)
   return (
     <div className="mc-fade-up">
-      {/* Row 1 — KPI cards */}
       <div className="mc-dash-kpis">
         <CostExposureCard
           total={stats.total_predicted_cost}
           momPct={stats.mom_pct}
-          basis={basis}
         />
         <KpiCard
           label="Avg cost / patient"
           value={usd(stats.average_cost)}
-          foot={`${basis} basis`}
+          foot={`cumulative to date`}
         />
         <KpiCard
           label="Patients assessed"
           value={count(stats.total_patients)}
-          foot={`across ${count(stats.total_reports)} reports`}
+          foot={`across all reports`}
         />
-        <HighCostCard high={stats.high_cost} highMin={stats.cost_tiers.high_min} />
+        <ReportsThisMonthCard
+          thisMonth={stats.reports_this_month}
+          lastMonth={stats.reports_last_month}
+        />
       </div>
 
-      {/* Row 2 — cost-tier bars (2fr) + cost concentration donut (1fr) */}
       <div className="mc-dash-row">
         <Card
-          title="Patients by cost tier"
-          subtitle={`Monthly counts · cost tiers from $${count(stats.cost_tiers.low_max)} / $${count(stats.cost_tiers.high_min)} thresholds`}
+          title="Patients by cost tiers"
+          subtitle={`Monthly counts`}
         >
           <TierByMonth data={stats.tier_by_month} />
         </Card>
@@ -85,11 +82,10 @@ function DashboardContent({ stats }: { stats: Stats }) {
         </Card>
       </div>
 
-      {/* Row 3 — this vs last month weekly area (2fr) + cost by age (1fr) */}
       <div className="mc-dash-row">
         <Card
-          title="Total cost: this month vs last month"
-          subtitle={`Weekly ${stats.cost_basis} cost from logged reports`}
+          title="Total cost in the last 2 months"
+          subtitle={`Weekly cost from logged reports`}
         >
           <WeeklyArea
             thisMonth={stats.weekly_this_month}
@@ -103,8 +99,6 @@ function DashboardContent({ stats }: { stats: Stats }) {
     </div>
   )
 }
-
-/* ----------------------------- Layout chrome ----------------------------- */
 
 function Topbar({ lastUpdated, loading, onRefresh }: {
   lastUpdated: Date | null; loading: boolean; onRefresh: () => void
@@ -128,12 +122,9 @@ function Topbar({ lastUpdated, loading, onRefresh }: {
   )
 }
 
-/* ------------------------------- KPI cards ------------------------------- */
-
-function CostExposureCard({ total, momPct, basis }: {
-  total: number; momPct: number | null; basis: string
+function CostExposureCard({ total, momPct }: {
+  total: number; momPct: number | null
 }) {
-  // Rising predicted cost is unfavourable for finance -> red warning tone.
   const up = (momPct ?? 0) >= 0
   return (
     <div style={s.heroCard}>
@@ -142,12 +133,12 @@ function CostExposureCard({ total, momPct, basis }: {
       <div style={s.heroFootRow}>
         {momPct !== null ? (
           <span style={{ ...s.momChip, background: up ? 'rgba(229,72,77,0.16)' : 'rgba(42,128,73,0.16)', color: up ? C.red : C.navy }}>
-            {up ? '▲' : '▼'} {pct1(Math.abs(momPct))} MoM
+            {up ? '▲' : '▼'} {pct1(Math.abs(momPct))} {up ? 'higher' : 'lower'} than last month
           </span>
         ) : (
           <span style={s.heroNoTrend}>No prior month to compare</span>
         )}
-        <span style={s.heroBasis}>{basis} · all assessed patients</span>
+        <span style={s.heroBasis}>From all assessed patients</span>
       </div>
     </div>
   )
@@ -163,23 +154,26 @@ function KpiCard({ label, value, foot }: { label: string; value: string; foot: s
   )
 }
 
-function HighCostCard({ high, highMin }: {
-  high: Stats['high_cost']; highMin: number
+function ReportsThisMonthCard({ thisMonth, lastMonth }: {
+  thisMonth: number; lastMonth: number
 }) {
+  // Month-over-month change in report count, as a percentage of last month.
+  const pctChange = lastMonth > 0 ? ((thisMonth - lastMonth) / lastMonth) * 100 : null
+  const up = (pctChange ?? 0) >= 0
   return (
     <div style={s.kpiCard} className="mc-card">
-      <div style={s.kpiLabel}>High-cost share</div>
-      <div style={s.kpiValue}>{pct1(high.pct_patients)}</div>
-      <div style={{ ...s.kpiFoot, color: C.navy, fontWeight: 600 }}>
-        {pct1(high.pct_cost)} of total cost
-      </div>
-      <div style={s.kpiSubFoot}>cost tier ≥ {usd(highMin)}</div>
+      <div style={s.kpiLabel}>Reports this month</div>
+      <div style={s.kpiValue}>{count(thisMonth)}</div>
+      {pctChange !== null ? (
+        <div style={{ ...s.kpiFoot, color: up ? C.navy : C.red, fontWeight: 600 }}>
+          {up ? '▲' : '▼'} {pct1(Math.abs(pctChange))} vs last month
+        </div>
+      ) : (
+        <div style={s.kpiFoot}>no reports last month</div>
+      )}
     </div>
   )
 }
-
-/* --------------------------------- Card ---------------------------------- */
-
 function Card({ title, subtitle, children }: {
   title: string; subtitle?: string; children: React.ReactNode
 }) {
@@ -265,13 +259,11 @@ function ConcentrationDonut({ share }: { share: number }) {
         </text>
       </svg>
       <div style={s.donutCaption}>
-        The most expensive 10% of patients account for {pct1(share)} of predicted cost.
+        The most expensive 10% of patients account for {pct1(share)} of overall registered cost.
       </div>
     </div>
   )
 }
-
-/* ----------------------- Row 3a — weekly area ---------------------------- */
 
 function WeeklyArea({ thisMonth, lastMonth }: {
   thisMonth: { week: number; cost: number }[]
@@ -288,8 +280,6 @@ function WeeklyArea({ thisMonth, lastMonth }: {
   const x = (week: number) => padX + ((week - 1) / (weeks.length - 1)) * (w - padX * 2)
   const y = (cost: number) => padTop + (1 - cost / max) * (h - padTop - padBottom)
 
-  // Smooth the polyline into a wave with a Catmull-Rom -> cubic Bézier spline
-  // so the series curve between weeks instead of meeting at sharp corners.
   const smooth = (pts: readonly (readonly [number, number])[]) => {
     if (pts.length < 2) return ''
     let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`
@@ -322,10 +312,8 @@ function WeeklyArea({ thisMonth, lastMonth }: {
   return (
     <div>
       <svg width="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ display: 'block' }}>
-        {/* last month behind */}
         <path d={last.area} fill={C.orange} fillOpacity={0.14} />
         <path d={last.line} fill="none" stroke={C.orange} strokeWidth={2.5} strokeLinejoin="round" />
-        {/* this month in front */}
         <path d={cur.area} fill={C.navy} fillOpacity={0.14} />
         <path d={cur.line} fill="none" stroke={C.navy} strokeWidth={2.5} strokeLinejoin="round" />
         {weeks.map((wk) => (
@@ -341,8 +329,6 @@ function WeeklyArea({ thisMonth, lastMonth }: {
     </div>
   )
 }
-
-/* ------------------------ Row 3b — cost by age --------------------------- */
 
 function CostByAge({ bands }: { bands: Stats['cost_by_age'] }) {
   const max = Math.max(...bands.map((b) => b.avg_cost), 1)
